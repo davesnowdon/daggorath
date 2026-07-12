@@ -30,10 +30,15 @@ void    plat_shutdown(void);
 
 /* --- video: draw into the BACK buffer, then present -------------------- */
 void    plat_clear(void);
-/* fade: index into the VECTOR.ASM dot-mask table; 0 = solid line.
- * Callers never pass the 0xFF "invisible" value - they skip the draw. */
-void    plat_draw_line(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
-                       uint8_t fade);
+/* Draws with EXACTLY the VECTOR.ASM algorithm - see core/draw_ref.c,
+ * the normative reference implementation (desktop and MEGA65 compile it;
+ * the Next's Z80n assembly must match it pixel for pixel).
+ * Coordinates may be off-screen; the rasterizer clips.
+ * vctfad: dot period - 1 (0 = solid, 0xFF = invisible no-op).
+ * flags bit 0: inverse mode (clear pixels). */
+#define PLAT_LINE_INVERSE 0x01u
+void    plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                       uint8_t vctfad, uint8_t flags);
 /* Character grid is 32 cols x 24 rows of 8x8 cells; rows[7] are the
  * pre-shifted bytes from tables_font.c (bit 7 leftmost pixel). */
 void    plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7]);

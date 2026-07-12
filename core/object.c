@@ -84,8 +84,9 @@ static const dodBYTE OMXTAB_VISION[18] = {
     0x14, 0x14, 0x16, 0x01, 0x04, 0x08, 0x08, 0x03, 0x04
 };
 
-/* GENVAL: incanted-form redirection per class; 0xFF = none.
- * SHIELD->16, SWORD->17, TORCH->15 (generic default fill) */
+/* GENVAL: generic default object id per class; 0xFF = none.
+ * SHIELD->16 (leather), SWORD->17 (wooden), TORCH->15 (pine): unrevealed
+ * objects carry the weakest form's combat stats (OBIRTH refill). */
 static const dodBYTE GENVAL[6] = { 0xFF, 0xFF, 0xFF, 0x10, 0x11, 0x0F };
 
 /* OBJWGT: object weight per class (DTABAS.ASM WGT macro, FCB) */
