@@ -15,6 +15,7 @@
 #include "../core/tables_vec.h"
 #include "../core/tables_font.h"
 #include "../core/sound_ids.h"
+#include "../core/game.h"
 
 #define WIN_SCALE 4
 #define SFX_RATE 22050u
@@ -281,6 +282,11 @@ void plat_yield(void)
     if (opt.exit_jiffy && now_jiffies32() >= opt.exit_jiffy) {
         quit_requested = 1;
     }
+    if (quit_requested) {
+        /* game_run never returns; the shell owns termination */
+        plat_shutdown();
+        exit(0);
+    }
 }
 
 uint8_t plat_save_state(const void *buf, uint16_t len)
@@ -466,8 +472,7 @@ int main(int argc, char **argv)
     if (opt.pattern) {
         run_pattern();
     } else {
-        /* game entry: wired to game_COMINI() once the core lands */
-        fprintf(stderr, "core game loop not linked yet; try --pattern\n");
+        game_run();   /* never returns except via quit -> exit below */
     }
     plat_shutdown();
     return 0;
