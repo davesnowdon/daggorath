@@ -4,7 +4,7 @@ CC      := gcc
 CFLAGS  := -std=c99 -Wall -Wextra -Werror -pedantic -O1 -g
 CORE    := ../core
 
-TESTS   := test_rng test_draw
+TESTS   := test_rng test_draw test_scale
 
 .PHONY: all clean coverage golden
 all: $(TESTS:%=run-%)
@@ -16,6 +16,10 @@ test_rng: test_rng.c $(CORE)/rng.c
 	$(CC) $(CFLAGS) -I$(CORE) -o $@ $^
 
 test_draw: test_draw.c $(CORE)/draw_ref.c
+	$(CC) $(CFLAGS) -I$(CORE) -o $@ $^
+
+# links viewer_list only; provides its own viewer_state and plat stub
+test_scale: test_scale.c $(CORE)/viewer_list.c stub_plat_line.c
 	$(CC) $(CFLAGS) -I$(CORE) -o $@ $^
 
 run-%: %

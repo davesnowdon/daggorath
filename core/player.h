@@ -57,8 +57,13 @@ int8_t player_HSLOW(void);           /* heart-slow task */
 int8_t player_BURNER(void);          /* torch burn task */
 void player_HUPDAT(void);            /* heart update: J=(P*64)/(P+2D)-19 */
 uint8_t player_ATTACK(dodSHORT AP, dodSHORT DP, dodSHORT DD);
+/* TODO(reconcile): 7th arg added for creature.c - the port's DAMAGE takes
+ * dodSHORT *DD, the defender's accumulated damage (&PDAM when a creature
+ * hits the player, &CCBLND[i].P_CCDAM when the player hits a creature);
+ * the 6-arg form could not express the target. */
 uint8_t player_DAMAGE(dodSHORT AP, dodBYTE AMO, dodBYTE APO,
-                      dodSHORT DP, dodBYTE DMD, dodBYTE DPD);
+                      dodSHORT DP, dodBYTE DMD, dodBYTE DPD,
+                      dodSHORT *DD);
 
 /* command handlers (PATTK.ASM, PTURN.ASM, ...) */
 void player_PATTK(void);

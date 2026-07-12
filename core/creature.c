@@ -27,14 +27,15 @@
  * (port ms = tenths*100, so jiffies = ms*6/100 exactly; no rounding.)
  */
 #include "creature.h"
-#include "creature_deps.h"
 #include "game.h"
+#include "dungeon.h"
 #include "object.h"
 #include "sched.h"
 #include "viewer.h"
 #include "player.h"
 #include "sound.h"
 #include "rng.h"
+#include "platform.h"
 
 creature_state creature;
 
@@ -64,8 +65,8 @@ static const dodBYTE MOVTAB[7] = { 0, 3, 1, 0, 1, 3, 0 };
 /* creature_id -> SND id.  The port loaded creSound[i] from WAV files
  * whose filename numbers equal the SND_ ids (00_squeak .. 0B_bdlbdl). */
 static const uint8_t creSound[CTYPES] = {
-    SND_SQUEAK,  SND_RATTLE,  SND_GROWL,  SND_BEOOP,
-    SND_KLANK,   SND_GRAWL,   SND_PSSST,  SND_KKLANK,
+    SND_SQUEAK,  SND_RATTLE,  SND_GROWL,   SND_BEOOP,
+    SND_KLANK,   SND_GRAWL,   SND_PSSST,   SND_KKLANK,
     SND_PSSHT,   SND_SNARL,   SND_BDLBDL1, SND_BDLBDL2
 };
 
@@ -88,6 +89,27 @@ static const dodBYTE CMXLND_VISION[60] = {
 };
 
 static const CCB CCB_EMPTY = { .P_CCOBJ = DOD_NONE };
+
+/* The port's inline `while (Mix_Playing(ch)) { CLOCK-if-due }` wait with
+ * the demo-abort check; returns 1 when CMOVE must bail out (the CLOCK
+ * task aborted the demo).  Same due-test idiom as sched.c/sound.c. */
+static uint8_t cre_sound_wait_abortable(void)
+{
+    while (snd_playing())
+    {
+        sched.curTime = plat_jiffies();
+        if ((jiffy_t)(sched.curTime - sched.TCBLND[0].next_time) < 0x8000u)
+        {
+            sched_CLOCK();
+            if (game.AUTFLG && game.demoRestart == 0)
+            {
+                return 1;
+            }
+        }
+        plat_yield();
+    }
+    return 0;
+}
 
 void creature_Reset(void)
 {
@@ -199,7 +221,7 @@ void creature_CBIRTH(dodBYTE typ)
             cl = (rng_RANDOM() & 31);
             rw = (rng_RANDOM() & 31);
             maz_idx = dungeon_RC2IDX(rw, cl);
-        } while (dungeon_MAZLND[maz_idx] == 0xFF);
+        } while (dungeon.MAZLND[maz_idx] == 0xFF);
     } while (creature_CFIND(rw, cl) == 0);
 
     creature.CCBLND[u].P_CCROW = rw;
@@ -257,7 +279,7 @@ int8_t creature_CREGEN(void)
 
     /* update task's next_time */
     sched.TCBLND[TID_CRTREGEN].next_time =
-        (jiffy_t)(plat_jiffies() +
+        (jiffy_t)(sched.curTime +
                   sched.TCBLND[TID_CRTREGEN].frequency);
 
     X = creature.CMXPTR;
@@ -302,8 +324,8 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
         if (creature.CCBLND[cidx].creature_id != CRT_SCORPION &&
             creature.CCBLND[cidx].creature_id < CRT_WIZIMG &&
             !(game.CreaturesIgnoreObjects &&
-              creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-              creature.CCBLND[cidx].P_CCCOL == player.PROW.col))
+              creature.CCBLND[cidx].P_CCROW == player.PROW &&
+              creature.CCBLND[cidx].P_CCCOL == player.PCOL))
         {
             RowCol rc;
             rc.row = creature.CCBLND[cidx].P_CCROW;
@@ -316,20 +338,20 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
                 creature.CCBLND[cidx].P_CCOBJ = oidx;
                 --object.OCBLND[oidx].P_OCOWN;
                 viewer_PUPDAT();
-                if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-                    creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+                if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+                    creature.CCBLND[cidx].P_CCCOL == player.PCOL)
                 {
                     viewer_PUPDAT();
                     viewer.NEWLUK = 0;
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTAT);
                     return 0;
                 }
                 else
                 {
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTMV);
                     return 0;
                 }
@@ -337,18 +359,14 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
         }
 
         /* attack player */
-        if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-            creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+        if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+            creature.CCBLND[cidx].P_CCCOL == player.PCOL)
         {
             /* do creature sound (same cell: range 0) */
             snd_creature(creSound[creature.CCBLND[cidx].creature_id], 0);
-            while (snd_playing())
+            if (cre_sound_wait_abortable())
             {
-                core_pump();
-                if (game.AUTFLG && game.demoRestart == 0)
-                {
-                    return 0;
-                }
+                return 0;
             }
 
             /* set player shielding parameters */
@@ -381,41 +399,36 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
                 }
             }
 
-            player.PMGD = shA;
-            player.PPHD = shB;
+            PMGD = shA;
+            PPHD = shB;
 
             /* process attack (the port's CHEAT_INVULNERABLE guard was an
              * enhancement and was not extracted) */
-            if (player_ATTACK(creature.CCBLND[cidx].P_CCPOW, player.PPOW,
-                              player.PDAM))
+            if (player_ATTACK(creature.CCBLND[cidx].P_CCPOW, PPOW, PDAM))
             {
                 /* make CLANK sound */
                 snd_creature(SND_CLANK, 0);
-                while (snd_playing())
+                if (cre_sound_wait_abortable())
                 {
-                    core_pump();
-                    if (game.AUTFLG && game.demoRestart == 0)
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
 
                 player_DAMAGE(creature.CCBLND[cidx].P_CCPOW,
                               creature.CCBLND[cidx].P_CCMGO,
-                              creature.CCBLND[cidx].P_CCPHO, player.PPOW,
-                              player.PMGD, player.PPHD, &player.PDAM);
+                              creature.CCBLND[cidx].P_CCPHO, PPOW,
+                              PMGD, PPHD, &PDAM);
             }
 
             player_HUPDAT();
             sched.TCBLND[task].next_time =
-                (jiffy_t)(plat_jiffies() + creature.CCBLND[cidx].P_CCTMV);
+                (jiffy_t)(sched.curTime + creature.CCBLND[cidx].P_CCTMV);
             return 0;
         }
 
         /* look for player along ROW axis */
-        if (creature.CCBLND[cidx].P_CCROW == player.PROW.row)
+        if (creature.CCBLND[cidx].P_CCROW == player.PROW)
         {
-            if (creature.CCBLND[cidx].P_CCCOL < player.PROW.col)
+            if (creature.CCBLND[cidx].P_CCCOL < player.PCOL)
             {
                 dir = 1;
             }
@@ -432,28 +445,28 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
                     doRandom = 1;
                     break;
                 }
-                r += dungeon_STPTAB[dir * 2];
-                c += dungeon_STPTAB[(dir * 2) + 1];
-            } while (!(r == player.PROW.row &&
-                       c == player.PROW.col));
+                r += STPTAB[dir * 2];
+                c += STPTAB[(dir * 2) + 1];
+            } while (!(r == player.PROW &&
+                       c == player.PCOL));
             if (doRandom == 0)
             {
                 creature.CCBLND[cidx].P_CCDIR = dir;
                 creature_CWALK(0, &creature.CCBLND[cidx]);
-                if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-                    creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+                if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+                    creature.CCBLND[cidx].P_CCCOL == player.PCOL)
                 {
                     viewer_PUPDAT();
                     viewer.NEWLUK = 0;
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTAT);
                     return 0;
                 }
                 else
                 {
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTMV);
                     return 0;
                 }
@@ -461,9 +474,9 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
         }
 
         /* look for player along COL axis */
-        if (creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+        if (creature.CCBLND[cidx].P_CCCOL == player.PCOL)
         {
-            if (creature.CCBLND[cidx].P_CCROW < player.PROW.row)
+            if (creature.CCBLND[cidx].P_CCROW < player.PROW)
             {
                 dir = 2;
             }
@@ -480,28 +493,28 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
                     doRandom = 1;
                     break;
                 }
-                r += dungeon_STPTAB[dir * 2];
-                c += dungeon_STPTAB[(dir * 2) + 1];
-            } while (!(r == player.PROW.row &&
-                       c == player.PROW.col));
+                r += STPTAB[dir * 2];
+                c += STPTAB[(dir * 2) + 1];
+            } while (!(r == player.PROW &&
+                       c == player.PCOL));
             if (doRandom == 0)
             {
                 creature.CCBLND[cidx].P_CCDIR = dir;
                 creature_CWALK(0, &creature.CCBLND[cidx]);
-                if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-                    creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+                if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+                    creature.CCBLND[cidx].P_CCCOL == player.PCOL)
                 {
                     viewer_PUPDAT();
                     viewer.NEWLUK = 0;
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTAT);
                     return 0;
                 }
                 else
                 {
                     sched.TCBLND[task].next_time =
-                        (jiffy_t)(plat_jiffies() +
+                        (jiffy_t)(sched.curTime +
                                   creature.CCBLND[cidx].P_CCTMV);
                     return 0;
                 }
@@ -510,8 +523,8 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
 
         /* player not seen so make random move */
         if (doRandom ||
-            (creature.CCBLND[cidx].P_CCROW != player.PROW.row &&
-             creature.CCBLND[cidx].P_CCCOL != player.PROW.col))
+            (creature.CCBLND[cidx].P_CCROW != player.PROW &&
+             creature.CCBLND[cidx].P_CCCOL != player.PCOL))
         {
             X = 0;
             rnd = rng_RANDOM();
@@ -530,20 +543,20 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
                 d = MOVTAB[X++];
                 if (creature_CWALK(d, &creature.CCBLND[cidx]))
                 {
-                    if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-                        creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+                    if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+                        creature.CCBLND[cidx].P_CCCOL == player.PCOL)
                     {
                         viewer_PUPDAT();
                         viewer.NEWLUK = 0;
                         sched.TCBLND[task].next_time =
-                            (jiffy_t)(plat_jiffies() +
+                            (jiffy_t)(sched.curTime +
                                       creature.CCBLND[cidx].P_CCTAT);
                         return 0;
                     }
                     else
                     {
                         sched.TCBLND[task].next_time =
-                            (jiffy_t)(plat_jiffies() +
+                            (jiffy_t)(sched.curTime +
                                       creature.CCBLND[cidx].P_CCTMV);
                         return 0;
                     }
@@ -554,19 +567,19 @@ int8_t creature_CMOVE(int8_t task, int8_t cidx)
         }
     }
 
-    if (creature.CCBLND[cidx].P_CCROW == player.PROW.row &&
-        creature.CCBLND[cidx].P_CCCOL == player.PROW.col)
+    if (creature.CCBLND[cidx].P_CCROW == player.PROW &&
+        creature.CCBLND[cidx].P_CCCOL == player.PCOL)
     {
         viewer_PUPDAT();
         viewer.NEWLUK = 0;
         sched.TCBLND[task].next_time =
-            (jiffy_t)(plat_jiffies() + creature.CCBLND[cidx].P_CCTAT);
+            (jiffy_t)(sched.curTime + creature.CCBLND[cidx].P_CCTAT);
         return 0;
     }
     else
     {
         sched.TCBLND[task].next_time =
-            (jiffy_t)(plat_jiffies() + creature.CCBLND[cidx].P_CCTMV);
+            (jiffy_t)(sched.curTime + creature.CCBLND[cidx].P_CCTMV);
         return 0;
     }
 }
@@ -585,8 +598,8 @@ uint8_t creature_CWALK(dodBYTE dir, CCB *cr)
     c = cr->P_CCCOL;
     if (dungeon_STEPOK(r, c, DIR))
     {
-        r += dungeon_STPTAB[DIR * 2];
-        c += dungeon_STPTAB[(DIR * 2) + 1];
+        r += STPTAB[DIR * 2];
+        c += STPTAB[(DIR * 2) + 1];
         if (!creature_CFIND(r, c))
         {
             return 0;
@@ -595,22 +608,22 @@ uint8_t creature_CWALK(dodBYTE dir, CCB *cr)
         rr = r;
         cc = c;
 
-        if (r > player.PROW.row)
+        if (r > player.PROW)
         {
-            r = r - player.PROW.row;
+            r = r - player.PROW;
         }
         else
         {
-            r = player.PROW.row - r;
+            r = player.PROW - r;
         }
 
-        if (c > player.PROW.col)
+        if (c > player.PCOL)
         {
-            c = c - player.PROW.col;
+            c = c - player.PCOL;
         }
         else
         {
-            c = player.PROW.col - c;
+            c = player.PCOL - c;
         }
 
         if (r > c)
@@ -646,12 +659,11 @@ uint8_t creature_CWALK(dodBYTE dir, CCB *cr)
             /* make sound, attenuated by maze range like SOUNDS.ASM.
              * (The port scaled Mix_Volume by (9-big)/8 and, with the
              * OPT_STEREO enhancement, panned by relative bearing; both
-             * now live behind snd_creature in the platform layer.) */
+             * now live behind snd_creature in the platform layer.)
+             * The port's wait here ticks only CLOCK, with no demo-abort
+             * check: exactly snd_wait_done(). */
             snd_creature(creSound[cr->creature_id], big);
-            while (snd_playing())
-            {
-                core_pump();
-            }
+            snd_wait_done();
         }
 
         cr->P_CCROW = rr;

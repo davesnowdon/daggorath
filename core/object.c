@@ -11,7 +11,7 @@
  *    We keep the PORT values - behaviour is identical at 5 s granularity.
  */
 #include "object.h"
-#include "object_deps.h"
+#include "parser.h"
 #include "game.h"
 #include "sound_ids.h"
 
@@ -227,19 +227,19 @@ void object_OBJNAM(int8_t idx)
 {
     dodBYTE ctr = 0;
     const dodBYTE *X;
-    dodBYTE Xup;
+    int16_t Xup;
     dodBYTE A;
     dodBYTE offset;
 
     if (idx == DOD_NONE)
     {
         /* return "EMPTY" */
-        parser_TOKEN[0] = 0x05;
-        parser_TOKEN[1] = 0x0D;
-        parser_TOKEN[2] = 0x10;
-        parser_TOKEN[3] = 0x14;
-        parser_TOKEN[4] = 0x19;
-        parser_TOKEN[5] = I_NULL;
+        parser.TOKEN[0] = 0x05;
+        parser.TOKEN[1] = 0x0D;
+        parser.TOKEN[2] = 0x10;
+        parser.TOKEN[3] = 0x14;
+        parser.TOKEN[4] = 0x19;
+        parser.TOKEN[5] = I_NULL;
         return;
     }
 
@@ -256,10 +256,10 @@ void object_OBJNAM(int8_t idx)
 
         do
         {
-            parser_TOKEN[ctr] = parser_STRING[ctr + 2];
-        } while (parser_STRING[ctr++ + 2] != I_NULL);
+            parser.TOKEN[ctr] = parser.STRING[ctr + 2];
+        } while (parser.STRING[ctr++ + 2] != I_NULL);
 
-        parser_TOKEN[ctr - 1] = 0;
+        parser.TOKEN[ctr - 1] = 0;
     }
 
     X = &GENTAB[1];
@@ -275,8 +275,8 @@ void object_OBJNAM(int8_t idx)
 
     do
     {
-        parser_TOKEN[ctr] = parser_STRING[ctr - offset + 2];
-    } while (parser_STRING[ctr++ - offset + 2] != I_NULL);
+        parser.TOKEN[ctr] = parser.STRING[ctr - offset + 2];
+    } while (parser.STRING[ctr++ - offset + 2] != I_NULL);
 }
 
 /* Parses an object name ([adjective] class) */

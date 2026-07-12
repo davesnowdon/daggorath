@@ -11,6 +11,11 @@ typedef struct {
     uint8_t demoRestart;
     uint8_t RandomMaze;  /* enhancement: off in authentic mode */
     uint8_t IsDemo;
+    /* TODO(impl): port option toggles (dodgame.h); all 0 in authentic
+     * mode.  object.c and creature.c read them at Reset/CMOVE time. */
+    uint8_t ShieldFix;              /* swap weak shields' defense filters */
+    uint8_t VisionScroll;           /* extra vision scroll variant */
+    uint8_t CreaturesIgnoreObjects; /* don't pick up under the player */
 } game_state;
 
 extern game_state game;
