@@ -31,3 +31,13 @@ coverage: clean all
 
 clean:
 	rm -f $(TESTS) *.gcda *.gcno
+
+# Module-level A/B: extracted C dungeon+parser vs the port's code verbatim.
+# Both dump CRC-tagged state; outputs must be identical.
+ab-modules: ab_modules_c.c $(CORE)/dungeon.c $(CORE)/parser.c $(CORE)/rng.c
+	$(CC) $(CFLAGS) -Wno-unused-parameter -I$(CORE) -o ab_c $^
+	g++ -O1 -w -o ab_ref ../tools/ab_modules_ref.cpp \
+	    -I../../../native-port/DungeonsOfDaggorath/src \
+	    $$(sdl2-config --cflags) -I$$HOME/.local/include
+	./ab_c > ab_c.out && ./ab_ref > ab_ref.out
+	diff ab_c.out ab_ref.out && echo "AB-MODULES IDENTICAL"
