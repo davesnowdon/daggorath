@@ -13,6 +13,7 @@
 #include "dungeon.h"
 #include "viewer.h"
 #include "sound.h"
+#include "rng.h"
 #include "platform.h"
 
 game_state game;
@@ -139,6 +140,17 @@ void game_WAIT(void)
 
 void game_run(void)
 {
+    /* C++ global constructors ran before the port's main(); the C core
+     * must do that work explicitly before anything draws or schedules. */
+    rng_reset();
+    dungeon_Reset();
+    parser_Reset();
+    object_Reset();
+    creature_Reset();
+    player_Reset();
+    viewer_Reset();
+    sched_Reset();
+
     /* port dodGame constructor state */
     game.LEVEL = 2;
     game.AUTFLG = 1;

@@ -42,6 +42,11 @@ void    plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 /* Character grid is 32 cols x 24 rows of 8x8 cells; rows[7] are the
  * pre-shifted bytes from tables_font.c (bit 7 leftmost pixel). */
 void    plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7]);
+/* Invert (XOR) one row of ncols character cells starting at (col,row);
+ * only the 7 glyph scanlines are touched (COMTXT.ASM TXTDPB deposits 7
+ * bytes; the 8th cell line keeps the background).  Used for inverse text
+ * (P.TXINV) and the examine-screen lit-torch highlight. */
+void    plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols);
 void    plat_present(void);
 
 /* --- sound: one channel, play preempts, matching the CoCo's single DAC - */

@@ -16,6 +16,7 @@
 #include "../core/tables_font.h"
 #include "../core/sound_ids.h"
 #include "../core/game.h"
+#include "../core/viewer.h"
 
 #define WIN_SCALE 4
 #define SFX_RATE 22050u
@@ -129,16 +130,38 @@ static void write_pgm(const char *path)
     fprintf(stderr, "screenshot -> %s\n", path);
 }
 
-void plat_present(void)
+static void dump_grid(const char *name, const uint8_t *g, int rows)
 {
-    static int shot_done;
+    int r, c;
+    fprintf(stderr, "--- %s ---\n", name);
+    for (r = 0; r < rows; ++r) {
+        for (c = 0; c < 32; ++c) {
+            fprintf(stderr, "%02X ", g[r * 32 + c]);
+        }
+        fputc('\n', stderr);
+    }
+}
+
+static int shot_done;
+static void shot_check(void)
+{
     if (opt.shot_path && !shot_done && now_jiffies32() >= opt.shot_jiffy) {
         write_pgm(opt.shot_path);
+        if (getenv("DOD_DUMP_TEXT")) {
+            dump_grid("examArea", viewer.examArea, 19);
+            dump_grid("textArea", viewer.textArea, 4);
+            dump_grid("statArea", viewer.statArea, 1);
+        }
         shot_done = 1;
         if (opt.headless) {
             quit_requested = 1;
         }
     }
+}
+
+void plat_present(void)
+{
+    shot_check();
     if (opt.headless) {
         return;
     }
@@ -273,6 +296,7 @@ void plat_yield(void)
     if (opt.turbo) {
         ++sim_jiffies;
     }
+    shot_check();
     if (!opt.headless) {
         pump_events();
         if (!opt.turbo) {

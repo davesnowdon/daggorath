@@ -72,24 +72,27 @@ void sched_SYSTCB(void)
     (void)sched_GETTCB();
 }
 
-/* ASCII from plat_poll_key -> DoD display code (port keyHandler subset:
- * the game only consumes letters, space, return, backspace). */
-static int16_t ascii_to_dod(int16_t k)
+/* Filter plat_poll_key input to the port's supported key set.  The ring
+ * carries RAW ASCII exactly like the port (oslink handle_key_down puts
+ * 'A'..'Z', 0x20, 0x0D, 0x08); player_PLAYER converts to internal codes.
+ * Internal codes cannot live in the ring: I_SP is 0x00, which collides
+ * with parser_KBDGET's 0 = empty sentinel. */
+static int16_t ascii_filter(int16_t k)
 {
     if (k >= 'A' && k <= 'Z') {
-        return (int16_t)(k - 'A' + 1);
+        return k;
     }
     if (k >= 'a' && k <= 'z') {
-        return (int16_t)(k - 'a' + 1);
+        return (int16_t)(k - 'a' + 'A');
     }
     if (k == ' ') {
-        return I_SP;
+        return 0x20;
     }
     if (k == '\r' || k == '\n') {
-        return I_CR;
+        return 0x0D;
     }
     if (k == '\b' || k == 0x7F) {
-        return I_BS;
+        return 0x08;
     }
     return -1;
 }
@@ -99,18 +102,26 @@ static void kbd_poll(void)
 {
     int16_t k;
     while ((k = plat_poll_key()) >= 0) {
-        int16_t c = ascii_to_dod(k);
-        if (c >= 0) {
-            parser_KBDPUT((dodBYTE)c);
+        if (viewer.display_mode == MODE_MAP) {
+            /* any key exits the scroll map (port oslink handle_key_down:
+             * back to 3D view and inject a space) */
+            viewer.display_mode = MODE_3D;
+            --viewer.UPDATE;
+            parser_KBDPUT(0x20);
+            continue;
+        }
+        k = ascii_filter(k);
+        if (k >= 0) {
+            parser_KBDPUT((dodBYTE)k);
         }
     }
 }
 
-/* any key pending?  (port Scheduler::keyCheck) */
+/* any key pending?  (port Scheduler::keyCheck; the ring is parser's) */
 static uint8_t key_pending(void)
 {
     kbd_poll();
-    return (uint8_t)(player.KBDHDR != player.KBDTAL);
+    return (uint8_t)(parser.KBDHDR != parser.KBDTAL);
 }
 
 /* Scheduler::CLOCK - heartbeat + input, runs once per due jiffy. */
