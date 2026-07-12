@@ -18,6 +18,8 @@
 
 game_state game;
 
+void (*core_prompt_hook)(void);
+
 /* wait constants (dodgame.cpp ms -> jiffies) */
 #define WAIT_PREPARE   150u   /* 2500 ms with "PREPARE!" up */
 #define WAIT_SEER_MAP  180u   /* 3000 ms demo map display */

@@ -17,6 +17,13 @@
 #include "../core/sound_ids.h"
 #include "../core/game.h"
 #include "../core/viewer.h"
+#include "../core/player.h"
+#include "../core/object.h"
+#include "../core/creature.h"
+#include "../core/dungeon.h"
+#include "../core/parser.h"
+#include "../core/sched.h"
+#include "../core/rng.h"
 
 #define WIN_SCALE 4
 #define SFX_RATE 22050u
@@ -36,6 +43,8 @@ static struct {
     unsigned shot_jiffy;
     unsigned exit_jiffy;    /* stop after N jiffies (0 = never) */
     int pattern;
+    const char *dump_path;  /* state dump at every command prompt */
+    const char *save_path;  /* ZSAVE/ZLOAD slot file */
 } opt;
 
 static SDL_Window *win;
@@ -315,14 +324,144 @@ void plat_yield(void)
 
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;   /* wired up with the A/B harness */
+    FILE *f;
+    size_t n;
+    if (!opt.save_path) {
+        return PLAT_ERR_UNSUPPORTED;
+    }
+    f = fopen(opt.save_path, "wb");
+    if (!f) {
+        return PLAT_ERR_IO;
+    }
+    n = fwrite(buf, 1, len, f);
+    fclose(f);
+    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    FILE *f;
+    size_t n;
+    if (!opt.save_path) {
+        return PLAT_ERR_UNSUPPORTED;
+    }
+    f = fopen(opt.save_path, "rb");
+    if (!f) {
+        return PLAT_ERR_IO;
+    }
+    n = fread(buf, 1, len, f);
+    fclose(f);
+    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
+}
+
+/* ---- command-boundary state dumps (--dump-state) ----------------------
+ * Fired by core_prompt_hook at every viewer_PROMPT.  One text block per
+ * prompt: every gameplay-relevant field, plus the status/prompt text
+ * decoded to ASCII and a maze CRC.  Under --turbo --replay the whole
+ * file is bit-reproducible, so stored goldens freeze the core. */
+static FILE *dump_file;
+static unsigned dump_seq;
+
+static uint32_t crc32_buf(const uint8_t *p, uint32_t n)
+{
+    uint32_t crc = 0xFFFFFFFFu;
+    uint32_t i;
+    int b;
+    for (i = 0; i < n; ++i) {
+        crc ^= p[i];
+        for (b = 0; b < 8; ++b) {
+            crc = (crc >> 1) ^ (0xEDB88320u & (0u - (crc & 1u)));
+        }
+    }
+    return crc;
+}
+
+/* display code -> ASCII (dump readability only; not gameplay) */
+static char code_ascii(uint8_t c)
+{
+    if (c == 0x00) return ' ';
+    if (c >= 1 && c <= 26) return (char)('A' + c - 1);
+    switch (c) {
+    case 0x1B: return '!';
+    case 0x1C: return '_';
+    case 0x1D: return '?';
+    case 0x1E: return '.';
+    case 0x1F: return '/';   /* I_CR */
+    case 0x20: case 0x21: case 0x22: case 0x23: return '#';  /* hearts */
+    case 0x24: return '<';   /* I_BS */
+    }
+    return '~';
+}
+
+static void dump_text_row(const char *tag, const uint8_t *g)
+{
+    int i;
+    fprintf(dump_file, "%s \"", tag);
+    for (i = 0; i < TEXT_COLS; ++i) {
+        fputc(code_ascii(g[i]), dump_file);
+    }
+    fprintf(dump_file, "\"\n");
+}
+
+static void dump_state(void)
+{
+    int i;
+
+    fprintf(dump_file, "=== %u t %u\n", dump_seq++, (unsigned)sched.curTime);
+    fprintf(dump_file, "GAME lvl %u aut %u won %u demoptr %u\n",
+            game.LEVEL, game.AUTFLG, game.hasWon, game.DEMOPTR);
+    fprintf(dump_file, "RNG %02X%02X%02X\n",
+            rng.SEED[0], rng.SEED[1], rng.SEED[2]);
+    fprintf(dump_file,
+            "PLR r %u c %u d %u pow %u dam %u mgo %u mgd %u pho %u phd %u"
+            " heartr %u heartf %u faint %u\n",
+            player.PROW, player.PCOL, player.PDIR,
+            PPOW, PDAM, PMGO, PMGD, PPHO, PPHD,
+            player.HEARTR, player.HEARTF, player.FAINT);
+    fprintf(dump_file,
+            "HND l %d r %d bag %d torch %d wt %u rlite %u mlite %u"
+            " vlite %u,%u,%u\n",
+            player.PLHAND, player.PRHAND, player.BAGPTR, player.PTORCH,
+            player.POBJWT, player.PRLITE, player.PMLITE,
+            viewer.RLIGHT, viewer.MLIGHT, viewer.OLIGHT);
+    fprintf(dump_file, "SCHED n %d z %u\n", sched.TCBPTR, sched.ZFLAG);
+    for (i = 0; i < sched.TCBPTR && i < TCB_COUNT; ++i) {
+        const Task *t = &sched.TCBLND[i];
+        if (t->type == DOD_NONE) {
+            continue;
+        }
+        fprintf(dump_file, "T%d typ %d dat %d frq %u due %d\n", i,
+                t->type, t->data, (unsigned)t->frequency,
+                (int)(int16_t)(t->next_time - sched.curTime));
+    }
+    for (i = 0; i < object.OCBPTR && i < 72; ++i) {
+        const OCB *o = &object.OCBLND[i];
+        fprintf(dump_file,
+                "OBJ %d id %u typ %u ptr %d own %u rc %u,%u lvl %u"
+                " x %u,%u,%u\n",
+                i, o->obj_id, o->obj_type, o->P_OCPTR, o->P_OCOWN,
+                o->P_OCROW, o->P_OCCOL, o->P_OCLVL,
+                o->P_OCXX0, o->P_OCXX1, o->P_OCXX2);
+    }
+    for (i = 0; i < 32; ++i) {
+        const CCB *c = &creature.CCBLND[i];
+        if (c->P_CCUSE == 0) {
+            continue;
+        }
+        fprintf(dump_file,
+                "CRE %d id %u pow %u dam %u rc %u,%u dir %u obj %d\n",
+                i, c->creature_id, c->P_CCPOW, c->P_CCDAM,
+                c->P_CCROW, c->P_CCCOL, c->P_CCDIR, c->P_CCOBJ);
+    }
+    fprintf(dump_file, "MAZ %08X\n",
+            crc32_buf(dungeon.MAZLND, 1024u));
+    dump_text_row("STAT", viewer.statArea);
+    for (i = 0; i < PROMPT_ROWS; ++i) {
+        char tag[8];
+        snprintf(tag, sizeof tag, "TXT%d", i);
+        dump_text_row(tag, viewer.textArea + i * TEXT_COLS);
+    }
+    fflush(dump_file);
 }
 
 static void load_sfx(const char *dir)
@@ -451,7 +590,8 @@ static void usage(const char *argv0)
     fprintf(stderr,
             "usage: %s [--pattern] [--headless] [--turbo] [--white]\n"
             "          [--record F] [--replay F] [--screenshot N F]\n"
-            "          [--exit-after N]\n", argv0);
+            "          [--exit-after N] [--dump-state F] [--save-file F]\n",
+            argv0);
 }
 
 int main(int argc, char **argv)
@@ -476,6 +616,10 @@ int main(int argc, char **argv)
             opt.shot_path = argv[++i];
         } else if (!strcmp(argv[i], "--exit-after") && i + 1 < argc) {
             opt.exit_jiffy = (unsigned)strtoul(argv[++i], NULL, 10);
+        } else if (!strcmp(argv[i], "--dump-state") && i + 1 < argc) {
+            opt.dump_path = argv[++i];
+        } else if (!strcmp(argv[i], "--save-file") && i + 1 < argc) {
+            opt.save_path = argv[++i];
         } else {
             usage(argv[0]);
             return 2;
@@ -483,6 +627,14 @@ int main(int argc, char **argv)
     }
     if (opt.record_path) {
         rec_file = fopen(opt.record_path, "w");
+    }
+    if (opt.dump_path) {
+        dump_file = fopen(opt.dump_path, "w");
+        if (!dump_file) {
+            perror(opt.dump_path);
+            return 1;
+        }
+        core_prompt_hook = dump_state;
     }
     if (opt.replay_path) {
         rep_file = fopen(opt.replay_path, "r");

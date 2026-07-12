@@ -110,9 +110,12 @@ static void fade_frame(uint8_t withMessage)
     plat_present();
 }
 
-/* has a key arrived since viewer_fade_start? (non-consuming) */
+/* has a key arrived since viewer_fade_start? (non-consuming; polls the
+ * platform directly like the port's keyCheck - the CLOCK task won't
+ * gather keys while the player is fainted) */
 static uint8_t fade_key_fresh(void)
 {
+    sched_kbd_poll();
     return (uint8_t)(parser.KBDTAL != fadeKbdTal);
 }
 
@@ -167,6 +170,9 @@ uint8_t viewer_draw_fade(void)
     if (fadeDone) {
         if (fadeMode >= FADE_DEATH) {
             fade_frame(1);        /* hold wizard + message on screen */
+            /* keys arrive only via CLOCK's kbd_poll: tick one jiffy or
+             * the hold loop can never see the key it is waiting for */
+            core_wait_jiffies(1);
         }
         return 1;
     }

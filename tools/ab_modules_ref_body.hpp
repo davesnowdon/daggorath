@@ -21,7 +21,14 @@ struct Utils {
 			hiter++;
 		}
 	}
+	template<class T> static void LoadFromDecDigit(T * b, std::string dd){
+		auto dditer = dd.begin();
+		while (dditer != dd.end()){
+			*b++ = (*dditer++ - '0');
+		}
+	}
 };
+typedef struct Mix_Chunk Mix_Chunk;	/* stub: declared members only, never used */
 class RowCol
 {
 public:
@@ -32,10 +39,316 @@ public:
 	dodBYTE row;
 	dodBYTE col;
 };
-struct GameStub { dodBYTE LEVEL; bool RandomMaze; bool IsDemo; } game;
-struct PlayerStub { dodBYTE PROW, PCOL; } player;
-struct SchedStub { Uint32 curTime; } scheduler;
-struct ViewerStub { void OUTSTI(dodBYTE*) {} } viewer;
+/* --- data block classes pasted VERBATIM from the port's dod.h --- */
+// Attack Block
+// Creatures and players use the same algorithm
+// for attacking and for damage infliction.  These
+// values are the common ones used.
+class ATB
+{
+public:
+	// Fields
+	dodSHORT	P_ATPOW;
+	dodBYTE		P_ATMGO;
+	dodBYTE		P_ATMGD;
+	dodBYTE		P_ATPHO;
+	dodBYTE		P_ATPHD;
+	dodSHORT	P_ATXX1;
+	dodSHORT	P_ATXX2;
+	dodSHORT	P_ATDAM;
+};
+
+// Creature control block
+// Holds all the data for a particular creature.
+class CCB
+{
+public:
+	// Constructor
+	CCB()
+	{ clear(); }
+
+	void clear()
+	{
+	P_CCPOW = 0;
+	P_CCMGO = 0;
+	P_CCMGD = 0;
+	P_CCPHO = 0;
+	P_CCPHD = 0;
+	P_CCTMV = 0;
+	P_CCTAT = 0;
+	P_CCOBJ = -1;
+	P_CCDAM = 0;
+	P_CCUSE = 0;
+	creature_id = 0;
+	P_CCDIR = 0;
+	P_CCROW = 0;
+	P_CCCOL = 0;
+	}
+
+	// Fields
+	dodSHORT	P_CCPOW;
+	dodBYTE		P_CCMGO;
+	dodBYTE		P_CCMGD;
+	dodBYTE		P_CCPHO;
+	dodBYTE		P_CCPHD;
+	int			P_CCTMV;
+	int			P_CCTAT;
+	int			P_CCOBJ;
+	dodSHORT	P_CCDAM;
+	dodBYTE		P_CCUSE;
+	dodBYTE		creature_id;
+	dodBYTE		P_CCDIR;
+	dodBYTE		P_CCROW;
+	dodBYTE		P_CCCOL;
+};
+
+// Creature definition block
+// Holds the data for a creature type.
+class CDB
+{
+public:
+	// Constructors
+	CDB(dodSHORT pow, dodBYTE mgo, dodBYTE mgd,
+		dodBYTE pho, dodBYTE phd, int tmv,
+		int tat)
+		: P_CDPOW(pow), P_CDMGO(mgo), P_CDMGD(mgd),
+		  P_CDPHO(pho), P_CDPHD(phd), P_CDTMV(tmv),
+		  P_CDTAT(tat)
+	{}
+
+	CDB()
+		: P_CDPOW(0), P_CDMGO(0), P_CDMGD(0),
+		  P_CDPHO(0), P_CDPHD(0), P_CDTMV(0),
+		  P_CDTAT(0)
+	{}
+
+	// Fields
+	dodSHORT	P_CDPOW;
+	dodBYTE		P_CDMGO;
+	dodBYTE		P_CDMGD;
+	dodBYTE		P_CDPHO;
+	dodBYTE		P_CDPHD;
+	int			P_CDTMV;
+	int			P_CDTAT;
+};
+
+// Object control block
+// Hold the data for a particular object.
+class OCB
+{
+public:
+	// Default constructor
+	OCB()
+		{ clear(); }
+
+	void clear()
+	{
+		P_OCPTR = -1;
+		P_OCROW = 0;
+		P_OCCOL = 0;
+		P_OCLVL = 0;
+		P_OCOWN = 0;
+		P_OCXX0 = 0;
+		P_OCXX1 = 0;
+		P_OCXX2 = 0;
+		obj_id = 0;
+		obj_type = 0;
+		obj_reveal_lvl = 0;
+		P_OCMGO = 0;
+		P_OCPHO = 0;
+	}
+
+	// Fields
+	int			P_OCPTR;
+	dodBYTE		P_OCROW;
+	dodBYTE		P_OCCOL;
+	dodBYTE		P_OCLVL;
+	dodBYTE		P_OCOWN;
+	dodSHORT	P_OCXX0;
+	dodSHORT	P_OCXX1;
+	dodSHORT	P_OCXX2;
+	dodBYTE		obj_id;
+	dodBYTE		obj_type;
+	dodBYTE		obj_reveal_lvl;
+	dodBYTE		P_OCMGO;
+	dodBYTE		P_OCPHO;
+};
+
+// Object definition block
+// Used for constructing specific objects.
+class ODB
+{
+public:
+	// Constructors
+	ODB(dodBYTE cls, dodBYTE rev, dodBYTE mgo,
+		dodBYTE pho)
+		: P_ODCLS(cls), P_ODREV(rev), P_ODMGO(mgo),
+		  P_ODPHO(pho)
+	{}
+
+	ODB()
+		: P_ODCLS(0), P_ODREV(0), P_ODMGO(0),
+		  P_ODPHO(0)
+	{}
+
+	// Fields
+	dodBYTE		P_ODCLS;
+	dodBYTE		P_ODREV;
+	dodBYTE		P_ODMGO;
+	dodBYTE		P_ODPHO;
+};
+
+// Extra definition block
+// Holds extra data for torches, rings, and shields:
+// torch timers, ring shot counters and incantation indices,
+// and shield magical and physical defense values.
+class XDB
+{
+public:
+	// Constructors
+	XDB(int idx, dodSHORT x0, dodSHORT x1,
+		dodSHORT x2)
+		: P_OXIDX(idx), P_OXXX0(x0), P_OXXX1(x1),
+		  P_OXXX2(x2)
+	{}
+
+	XDB()
+		: P_OXIDX(-1), P_OXXX0(0), P_OXXX1(0),
+		  P_OXXX2(0)
+	{}
+
+	// Fields
+	int			P_OXIDX;
+	dodSHORT	P_OXXX0;
+	dodSHORT	P_OXXX1;
+	dodSHORT	P_OXXX2;
+};
+
+// The new Task class for use in the rewritten
+// Scheduler algorithm.  Not all fields are being
+// used currently.  They may go away, if the current
+// algorthim tests well, otherwise, they may be used
+// for increasing the accuracy of the scheduler.
+struct Task
+{
+public:
+	int		type;		// One of the seven task types
+	int		data;		// Stores creatures ID
+	Uint32	frequency;	// in milliseconds
+	Uint32	prev_time;	// previous execution timestamp
+	Uint32	next_time;	// next scheduled execution timestamp
+	long	count;		// number of times executed
+
+	Task()
+		{ clear(); }
+
+	// Convenience Setter
+	void setValues(int t, int d, long f, long p, long n, long c, bool e)
+	{
+		type = t;
+		data = d;
+		frequency = f;
+		prev_time = p;
+		next_time = n;
+		count = c;
+	}
+
+	void clear()
+	{
+		type = -1;
+		data = -1;
+		frequency = 0;
+		prev_time = 0;
+		next_time = 0;
+		count = 0;
+	}
+};
+/* --- end verbatim dod.h data classes --- */
+
+struct GameStub { dodBYTE LEVEL; bool RandomMaze; bool IsDemo;
+                  bool ShieldFix; bool VisionScroll;
+                  bool CreaturesIgnoreObjects; } game;
+/* Player stub: PROW/PCOL plus just enough state for the two verbatim
+ * pure members (DAMAGE, and the HEARTR formula line from HUPDAT). */
+struct Player {
+	dodBYTE PROW, PCOL;
+	ATB PLRBLK;
+	dodBYTE HEARTR;
+	bool DAMAGE(int AP, int AMO, int APO,
+	            int DP, int DMD, int DPD, dodSHORT * DD);
+	void HUPDAT_heartr();	/* stub wrapper; body line is verbatim */
+} player;
+/* Scheduler stub: only what NEWLVL/CBIRTH touch.  The SYSTCB and GETTCB
+ * bodies below are the port's sched.cpp code VERBATIM; TCBPTR is public
+ * here (private in the port) so the harness can CRC it. */
+class Scheduler
+{
+public:
+	void		SYSTCB();
+	int			GETTCB();
+
+	Task	TCBLND[38];
+
+	enum { // task IDs
+		TID_CLOCK		= 0,
+		TID_PLAYER		= 1,
+		TID_REFRESH_DISP = 2,
+		TID_HRTSLOW		= 3,
+		TID_TORCHBURN	= 4,
+		TID_CRTREGEN	= 5,
+		TID_CRTMOVE		= 6,
+	};
+
+	Uint32		curTime;
+	int			TCBPTR;
+};
+Scheduler scheduler;
+
+// Creates initial Task Blocks
+void Scheduler::SYSTCB()
+{
+	int	ctr;
+	int	TCBindex;
+
+	for (ctr = 0; ctr < 38; ++ctr)
+	{
+		TCBLND[ctr].clear();
+	}
+
+	TCBPTR = 0;
+
+	TCBLND[0].type = TID_CLOCK;
+	TCBLND[0].frequency = 17;		// One JIFFY
+	TCBindex = GETTCB();
+
+	TCBLND[1].type = TID_PLAYER;
+	TCBLND[1].frequency = 17;		// One JIFFY
+	TCBindex = GETTCB();
+
+	TCBLND[2].type = TID_REFRESH_DISP;
+	TCBLND[2].frequency = 300;		// Three TENTHs
+	TCBindex = GETTCB();
+
+	TCBLND[3].type = TID_HRTSLOW;
+	TCBindex = GETTCB();
+
+	TCBLND[4].type = TID_TORCHBURN;
+	TCBLND[4].frequency = 5000;		// Five Seconds
+	TCBindex = GETTCB();
+
+	TCBLND[5].type = TID_CRTREGEN;
+	TCBLND[5].frequency = 300000;	// Five minutes
+	TCBindex = GETTCB();
+}
+
+// Gets next available Task Block and updates the index
+int Scheduler::GETTCB()
+{
+	++TCBPTR;
+	return (TCBPTR - 1);
+}
+
+struct ViewerStub { void OUTSTI(dodBYTE*) {} void setVidInv(bool) {} } viewer;
 // This class is a port of Daggorath's custom Random Number Generator
 class RNG
 {
@@ -1313,4 +1626,721 @@ void Dungeon::SetLEVTABRandomMap()
 	LEVTAB[4] = rand() & 255;
 	LEVTAB[5] = rand() & 255;
 	LEVTAB[6] = rand() & 255;
+}
+
+/****************************************
+Daggorath PC-Port Version 0.2.1
+Richard Hunerlach
+November 13, 2002
+
+The copyright for Dungeons of Daggorath
+is held by Douglas J. Morgan.
+(c) 1982, DynaMicro
+*****************************************/
+
+// Dungeons of Daggorath
+// PC-Port
+// Filename: object.h
+//
+// This class manages the objects (torches, etc.) in the
+// game.
+
+
+
+class Object
+{
+public:
+	// Constructor
+	Object();
+
+	// Public Interface
+	void	CreateAll();
+	int		FNDOBJ();
+	void	OBJNAM(int idx);
+	int		OFIND(RowCol rc);
+	int		OBIRTH(dodBYTE OBJCNT, dodBYTE OBJLVL);
+	void	OCBFIL(dodBYTE OBJTYP, int ptr);
+	bool	PAROBJ();
+	void	Reset();
+	void	LoadSounds();
+
+	// Public Data Membes
+	OCB			OCBLND[72];		// Holds most of the object data
+	int			OFINDF;
+	dodBYTE		ADJTAB[119];
+	dodBYTE		GENTAB[30];
+	dodBYTE		OBJTYP;
+	dodBYTE		OBJCLS;
+	dodBYTE		SPEFLG;
+	int			OBJWGT[6];
+	int			objChannel;
+	Mix_Chunk *	objSound[6];
+
+	// Constants
+	enum {
+
+		OBJ_SWORD_WOOD=17,
+		OBJ_SWORD_IRON=13,
+		OBJ_SWORD_ELVISH=2,
+
+		OBJ_SHIELD_LEATHER=16,
+		OBJ_SHIELD_BRONZE=11,
+		OBJ_SHIELD_MITHRIL=3,
+
+		OBJ_SCROLL_SEER=4,
+		OBJ_SCROLL_VISION=7,
+
+		OBJ_RING_JOULE=1,
+			OBJ_RING_ENERGY=19, // incanted
+		OBJ_RING_RIME=6,
+			OBJ_RING_ICE=20,	// incanted
+		OBJ_RING_VULCAN=12,
+			OBJ_RING_FIRE=21,	// incanted
+		OBJ_RING_SUPREME=0,
+			OBJ_RING_FINAL=18,	// incanted
+		OBJ_RING_GOLD=22,
+
+		OBJ_FLASK_THEWS=5,
+		OBJ_FLASK_ABYE=8,
+		OBJ_FLASK_HALE=9,
+		OBJ_FLASK_EMPTY=23,
+
+		OBJ_TORCH_SOLAR=10,
+		OBJ_TORCH_LUNAR=14,
+		OBJ_TORCH_PINE=15,
+		OBJ_TORCH_DEAD=24,
+
+		OBJT_FLASK=0,
+		OBJT_RING=1,
+		OBJT_SCROLL=2,
+		OBJT_SHIELD=3,
+		OBJT_WEAPON=4,
+		OBJT_TORCH=5,
+	};
+
+	int			OCBPTR;
+	int			OFINDP;
+
+private:
+	// Data Fields
+	ODB			ODBTAB[25];
+	XDB			XXXTAB[11];
+	dodBYTE		OMXTAB[18];
+	dodBYTE		GENVAL[6];
+};
+
+Object object;
+/****************************************
+Daggorath PC-Port Version 0.2.1
+Richard Hunerlach
+November 13, 2002
+
+The copyright for Dungeons of Daggorath
+is held by Douglas J. Morgan.
+(c) 1982, DynaMicro
+*****************************************/
+
+// Dungeons of Daggorath
+// PC-Port
+// Filename: object.cpp
+//
+// Implementation of Object class
+
+
+
+// Constructor
+Object::Object()
+{
+	Reset();
+}
+
+void Object::Reset()
+{
+	OFINDP = 0;
+	OFINDF = 0;
+	OCBPTR = 0;
+	OBJTYP = 0;
+	OBJCLS = 0;
+	SPEFLG = 0;
+	objChannel=1;
+
+	ODBTAB[0] = ODB(OBJT_RING, 255, 0, 5);		// Supreme Ring
+	ODBTAB[1] = ODB(OBJT_RING, 170, 0, 5);		// Joule Ring
+	ODBTAB[2] = ODB(OBJT_WEAPON, 150, 64, 64);	// Elvish Sword
+	ODBTAB[3] = ODB(OBJT_SHIELD, 140, 13, 26);	// Mithril Shield
+	ODBTAB[4] = ODB(OBJT_SCROLL, 130, 0, 5);	// Seer Scroll
+	ODBTAB[5] = ODB(OBJT_FLASK, 70, 0, 5);		// Thews Flask
+	ODBTAB[6] = ODB(OBJT_RING, 52, 0, 5);		// Rime Ring
+	ODBTAB[7] = ODB(OBJT_SCROLL, 50, 0, 5);		// Vision Scroll
+	ODBTAB[8] = ODB(OBJT_FLASK, 48, 0, 5);		// Abye Flask
+	ODBTAB[9] = ODB(OBJT_FLASK, 40, 0, 5);		// Hale Flask
+	ODBTAB[10] = ODB(OBJT_TORCH, 70, 0, 5);		// Solar Torch
+	ODBTAB[11] = ODB(OBJT_SHIELD, 25, 0, 26);	// Bronze Shield
+	ODBTAB[12] = ODB(OBJT_RING, 13, 0, 5);		// Vulcan Ring
+	ODBTAB[13] = ODB(OBJT_WEAPON, 13, 0, 40);	// Iron Sword
+	ODBTAB[14] = ODB(OBJT_TORCH, 25, 0, 5);		// Lunar Torch
+	ODBTAB[15] = ODB(OBJT_TORCH, 5, 0, 5);		// Pine Torch
+	ODBTAB[16] = ODB(OBJT_SHIELD, 5, 0, 10);	// Leather Shield
+	ODBTAB[17] = ODB(OBJT_WEAPON, 5, 0, 16);	// Wooden Sword
+	ODBTAB[18] = ODB(OBJT_RING, 0, 0, 0);		// Incanted Supreme Ring
+	ODBTAB[19] = ODB(OBJT_RING, 0, 255, 255);	// Incanted Joule Ring
+	ODBTAB[20] = ODB(OBJT_RING, 0, 255, 255);	// Incanted Rime Ring
+	ODBTAB[21] = ODB(OBJT_RING, 0, 255, 255);	// Incanted Vulcan Ring
+	ODBTAB[22] = ODB(OBJT_RING, 0, 0, 5);		// Gold Ring
+	ODBTAB[23] = ODB(OBJT_FLASK, 0, 0, 5);		// Empty Flask
+	ODBTAB[24] = ODB(OBJT_TORCH, 5, 0, 5);		// Dead Torch
+
+	XXXTAB[0] = XDB(0x00, 0x03, 0x12, 0x00);	// Supreme Ring
+	XXXTAB[1] = XDB(0x01, 0x03, 0x13, 0x00);	// Joule Ring
+	XXXTAB[2] = XDB(0x03, 0x40, 0x40, 0x00);	// Mithril Shield
+	XXXTAB[3] = XDB(0x06, 0x03, 0x14, 0x00);	// Rime Ring
+	XXXTAB[4] = XDB(0x0A, 0x02D0, 0x0D, 0x0B);	// Solar Torch
+	XXXTAB[5] = XDB(0x0B, 0x60, 0x80, 0x00);	// Bronze Shield
+	XXXTAB[6] = XDB(0x0C, 0x03, 0x15, 0x00);	// Vulcan Ring
+	XXXTAB[7] = XDB(0x0E, 0x0168, 0x0A, 0x04);	// Lunar Torch
+	XXXTAB[8] = XDB(0x0F, 0x00B4, 0x07, 0x00);	// Pine Torch
+	XXXTAB[9] = XDB(0x10, 0x6C, 0x80, 0x00);	// Leather Shield
+	XXXTAB[10] = XDB(0x18, 0x00, 0x00, 0x00);	// Dead Torch
+	if (game.ShieldFix) {  //Do they want the shield fix?
+		XXXTAB[5] = XDB(0x0B, 0x80, 0x60, 0x00);	// Bronze Shield
+		XXXTAB[9] = XDB(0x10, 0x80, 0x6C, 0x00);	// Leather Shield
+	}  //Do they want the shield fix?:
+
+	if (game.VisionScroll)  //Do we need an extra vision scroll in level 1?  Yes:
+		Utils::LoadFromHex(OMXTAB, "413131322323110416141416010408080304");
+	else  //Do we need an extra vision scroll in level 1?  No:
+		Utils::LoadFromHex(OMXTAB, "413131322323111316141416010408080304");
+	Utils::LoadFromHex(OBJWGT, "05010A19190A");
+	Utils::LoadFromHex(GENVAL, "FFFFFF10110F");
+	Utils::LoadFromHex(ADJTAB,
+		"1938675848AD282854FAB0A0310ACB266838DA9A22496020A652C8282882DE60"
+		"2064969430AC99A5EE20022C94201016142966F6064030C527BB45306D560C2E"
+		"211327B829595706402160971438D850D10590312EF790AE284C970580304AE2"
+		"C8F918523280204C9914204EF610280AD8532021485090");
+	Utils::LoadFromHex(GENTAB,
+		"06280CC0CD602064971C30A6393D8C30E6849584292777C8802968F90D00");
+}
+
+// Creates all the objects during initialization
+void Object::CreateAll()
+{
+	dodBYTE	a = 0, b, x;
+	dodBYTE	OBJCNT, OBJLVL;
+
+	for (x = 0; x < 72; ++x)
+	{
+		OCBLND[x].clear();
+	}
+
+	do
+	{
+		OBJCNT = (OMXTAB[a] & 0x0F);
+		OBJLVL = (OMXTAB[a] >> 4);
+		b = OBJLVL;
+
+		do
+		{
+			x = OBIRTH(a, b);
+			OCBLND[x].P_OCOWN = 0xFF;
+			++b;
+			if (b > 4)
+			{
+				b = OBJLVL;
+			}
+			--OBJCNT;
+		} while (OBJCNT != 0);
+
+		++a;
+	} while (a < 18);
+}
+
+// Finds object on the floor in a cell
+int Object::OFIND(RowCol rc)
+{
+	int idx;
+	do
+	{
+		idx = FNDOBJ();
+		if (idx == -1)
+			return -1;
+	} while ( (!((OCBLND[idx].P_OCROW == rc.row) && (OCBLND[idx].P_OCCOL == rc.col))) ||
+			 (OCBLND[idx].P_OCOWN != 0) );
+	return idx;
+}
+
+// Finds objects in the OCB table
+int Object::FNDOBJ()
+{
+	int x = OFINDP;
+	if (OFINDF == 0)
+	{
+		x = -1;
+		OFINDF = -1;
+	}
+
+	do
+	{
+		++x;
+		OFINDP = x;
+		if (x == OCBPTR)
+		{
+			return -1;
+		}
+	} while (OCBLND[x].P_OCLVL != game.LEVEL);
+	return x;
+}
+
+// Returns the object's name.
+void Object::OBJNAM(int idx)
+{
+	if (idx == -1)
+	{
+		// return "EMPTY"
+		parser.TOKEN[0] = 0x05;
+		parser.TOKEN[1] = 0x0D;
+		parser.TOKEN[2] = 0x10;
+		parser.TOKEN[3] = 0x14;
+		parser.TOKEN[4] = 0x19;
+		parser.TOKEN[5] = Parser::I_NULL;
+		return;
+	}
+
+	int ctr = 0;
+	dodBYTE * X;
+	int Xup;
+	dodBYTE A;
+
+	if (OCBLND[idx].obj_reveal_lvl == 0)
+	{
+		X = &ADJTAB[1];
+		A = OCBLND[idx].obj_id;
+		while (A != 0xFF)
+		{
+			parser.EXPAND(X, &Xup, 0);
+			X += Xup;
+			--A;
+		}
+
+		do
+		{
+			parser.TOKEN[ctr] = parser.STRING[ctr + 2];
+		} while (parser.STRING[ctr++ + 2] != Parser::I_NULL);
+
+		parser.TOKEN[ctr - 1] = 0;
+	}
+
+	X = &GENTAB[1];
+	A = OCBLND[idx].obj_type;
+	while (A != 0xFF)
+	{
+		parser.EXPAND(X, &Xup, 0);
+		X += Xup;
+		--A;
+	}
+
+	int offset = ctr;
+
+	do
+	{
+		parser.TOKEN[ctr] = parser.STRING[ctr - offset + 2];
+	} while (parser.STRING[ctr++ - offset + 2] != Parser::I_NULL);
+}
+
+// Parses an object name
+bool Object::PAROBJ()
+{
+	int		res;
+	dodBYTE	A, B;
+
+	SPEFLG = 0;
+	res = parser.PARSER(GENTAB, A, B, true);
+	if (res == 0)
+	{
+		parser.CMDERR();
+		return false;
+	}
+	if (res > 0)
+	{
+		OBJTYP = A;
+		OBJCLS = B;
+		return true;
+	}
+
+	--SPEFLG;
+	res = parser.PARSER(ADJTAB, A, B, false);
+	if (res <= 0)
+	{
+		parser.CMDERR();
+		return false;
+	}
+	OBJTYP = A;
+	OBJCLS = B;
+	res = parser.PARSER(GENTAB, A, B, true);
+	if (res <= 0)
+	{
+		parser.CMDERR();
+		return false;
+	}
+	if (B != OBJCLS)
+	{
+		parser.CMDERR();
+		return false;
+	}
+	return true;
+}
+
+// Creates new object
+int Object::OBIRTH(dodBYTE OBJTYP, dodBYTE OBJLVL)
+{
+	dodBYTE tmp;
+	int originalOCBPTR = OCBPTR;
+	OCBLND[OCBPTR].obj_id = OBJTYP;
+	OCBLND[OCBPTR].P_OCLVL = OBJLVL;
+	OCBFIL(OBJTYP, OCBPTR);
+	if (GENVAL[OCBLND[OCBPTR].obj_type] != 0xFF)
+	{
+		tmp = OCBLND[OCBPTR].obj_reveal_lvl;
+		OBJTYP = GENVAL[OCBLND[OCBPTR].obj_type];
+		OCBFIL(OBJTYP, OCBPTR);
+		OCBLND[OCBPTR].obj_reveal_lvl = tmp;
+	}
+	++OCBPTR;
+	return originalOCBPTR;
+}
+
+// Fills in default values for object
+void Object::OCBFIL(dodBYTE OBJTYP, int ptr)
+{
+	int ctr = 0;
+
+	OCBLND[ptr].obj_type = ODBTAB[OBJTYP].P_ODCLS;
+	OCBLND[ptr].obj_reveal_lvl = ODBTAB[OBJTYP].P_ODREV;
+	OCBLND[ptr].P_OCMGO = ODBTAB[OBJTYP].P_ODMGO;
+	OCBLND[ptr].P_OCPHO = ODBTAB[OBJTYP].P_ODPHO;
+
+	while (ctr < 11)
+	{
+		if (OBJTYP == XXXTAB[ctr].P_OXIDX)
+		{
+			OCBLND[ptr].P_OCXX0 = XXXTAB[ctr].P_OXXX0;
+			OCBLND[ptr].P_OCXX1 = XXXTAB[ctr].P_OXXX1;
+			OCBLND[ptr].P_OCXX2 = XXXTAB[ctr].P_OXXX2;
+		}
+		++ctr;
+	}
+}
+
+/****************************************
+Daggorath PC-Port Version 0.2.1
+Richard Hunerlach
+November 13, 2002
+
+The copyright for Dungeons of Daggorath
+is held by Douglas J. Morgan.
+(c) 1982, DynaMicro
+*****************************************/
+
+// Dungeons of Daggorath
+// PC-Port
+// Filename: creature.h
+//
+// This class manages the creature data and movement
+
+
+
+class Creature
+{
+public:
+	// Constructor
+	Creature();
+
+	// Public Interface
+	void		NEWLVL();
+	int			CREGEN();
+	int			CMOVE(int task, int cidx);
+	bool		CWALK(dodBYTE dir, CCB * cr);
+	bool		CFIND(dodBYTE rw, dodBYTE cl);
+	int			CFIND2(RowCol rc);
+	void		Reset();
+	void		LoadSounds();
+	void		UpdateCreSpeed();
+
+	// Public Data Fields
+	CCB			CCBLND[32];
+	dodBYTE		FRZFLG;
+	int			CMXPTR;
+	dodBYTE		CMXLND[60];
+	dodBYTE		MOVTAB[7];
+	Mix_Chunk * creSound[12];
+	Mix_Chunk * clank;
+	Mix_Chunk * kaboom;
+	Mix_Chunk *	buzz;
+	int			creChannel;
+	int			creChannelv;
+	int			creSpeedMul;
+
+	enum { // creature ID#s
+		CRT_SPIDER=0,
+		CRT_VIPER=1,
+		CRT_GIANT1=2,
+		CRT_BLOB=3,
+		CRT_KNIGHT1=4,
+		CRT_GIANT2=5,
+		CRT_SCORPION=6,
+		CRT_KNIGHT2=7,
+		CRT_WRAITH=8,
+		CRT_GALDROG=9,
+		CRT_WIZIMG=10,
+		CRT_WIZARD=11,
+	};
+
+private:
+	// Internal Implementation
+	void CBIRTH(dodBYTE a);
+
+	// Data Fields
+	CDB			CDBTAB[12];
+
+	// Constants
+	enum {
+		CTYPES=12,
+	};
+};
+
+Creature creature;
+/****************************************
+Daggorath PC-Port Version 0.2.1
+Richard Hunerlach
+November 13, 2002
+
+The copyright for Dungeons of Daggorath
+is held by Douglas J. Morgan.
+(c) 1982, DynaMicro
+*****************************************/
+
+// Dungeons of Daggorath
+// PC-Port
+// Filename: creature.cpp
+//
+// Implementation of Creature class
+
+
+
+// Constructor
+Creature::Creature()
+{
+	Reset();
+}
+
+void Creature::Reset()
+{
+	creChannel=1;
+	creChannelv=2;
+	creSpeedMul=100;
+
+	CMXPTR = 0;
+	FRZFLG = 0;
+
+	CDBTAB[0] = CDB(32,0,255,128,255,2300,1100);
+	CDBTAB[1] = CDB(56,0,255,80,128,1500,700);
+	CDBTAB[2] = CDB(200,0,255,52,192,2900,2300);
+	CDBTAB[3] = CDB(304,0,255,96,167,3100,3100);
+	CDBTAB[4] = CDB(504,0,128,96,60,1300,700);
+	CDBTAB[5] = CDB(704,0,128,128,48,1700,1300);
+	CDBTAB[6] = CDB(400,255,128,255,128,500,400);
+	CDBTAB[7] = CDB(800,0,64,255,8,1300,700);
+	CDBTAB[8] = CDB(800,192,16,192,8,300,300);
+	CDBTAB[9] = CDB(1000,255,5,255,3,400,300);
+	CDBTAB[10] = CDB(1000,255,6,255,0,1300,700);
+	CDBTAB[11] = CDB(8000,255,6,255,0,1300,700);
+
+	if (game.VisionScroll)  //Do we need to replace a snake with a blob w/ a vision scroll?  Yes:
+		Utils::LoadFromDecDigit(CMXLND, "984300000000240666000000000406840010000000866400222222244801");
+	else  //Do we need to replace a snake with a blob w/ a vision scroll?  No:
+		Utils::LoadFromDecDigit(CMXLND, "994200000000240666000000000406840010000000866400222222244801");
+	Utils::LoadFromDecDigit(MOVTAB, "0310130");
+}
+
+// This routine creates a new dungeon level,
+// filling it with objects and creatures.  It
+// should probably be moved to the Dungeon class.
+void Creature::NEWLVL()
+{
+	dodBYTE	a, b;
+	int		u, idx, tmp;
+
+	CMXPTR = game.LEVEL * CTYPES;
+	dungeon.CalcVFI();
+	for (tmp = 0; tmp < 32; ++tmp)
+	{
+		CCBLND[tmp].clear();
+	}
+	scheduler.SYSTCB();
+	dungeon.DGNGEN();
+	u = CMXPTR;
+	a = CTYPES - 1;
+	do
+	{
+		b = CMXLND[u + a];
+		if (b != 0)
+		{
+			do
+			{
+				CBIRTH(a);
+				--b;
+			} while (b != 0);
+		}
+		--a;
+	} while (a != 0xFF);
+
+	u = -1;
+	object.OFINDF = 0;
+	do
+	{
+		idx = object.FNDOBJ();
+		if (idx == -1)
+		{
+			break;
+		}
+		if (object.OCBLND[idx].P_OCOWN == 0xFF)
+		{
+			do
+			{
+				++u;
+				if (u == 32)
+				{
+					u = 0;
+				}
+				if (CCBLND[u].P_CCUSE != 0)
+				{
+					tmp = CCBLND[u].P_CCOBJ;
+					CCBLND[u].P_CCOBJ = idx;
+					object.OCBLND[idx].P_OCPTR = tmp;
+					break;
+				}
+			} while (true);
+		}
+	} while (true);
+
+	// Determine video invert Setting
+	viewer.setVidInv((game.LEVEL % 2) ?true: false);
+}
+
+// Creates a new creature and places it in the maze
+void Creature::CBIRTH(dodBYTE typ)
+{
+	int			u, maz_idx;
+	RowCol		rndcell;
+	dodBYTE		rw, cl;
+	int			TCBindex;
+
+	u = -1;
+	do
+	{
+		++u;
+	} while (CCBLND[u].P_CCUSE != 0);
+	--CCBLND[u].P_CCUSE;
+
+	CCBLND[u].creature_id = typ;
+	CCBLND[u].P_CCPOW = CDBTAB[typ].P_CDPOW;
+	CCBLND[u].P_CCMGO = CDBTAB[typ].P_CDMGO;
+	CCBLND[u].P_CCMGD = CDBTAB[typ].P_CDMGD;
+	CCBLND[u].P_CCPHO = CDBTAB[typ].P_CDPHO;
+	CCBLND[u].P_CCPHD = CDBTAB[typ].P_CDPHD;
+	CCBLND[u].P_CCTMV = CDBTAB[typ].P_CDTMV;
+	CCBLND[u].P_CCTAT = CDBTAB[typ].P_CDTAT;
+
+	do
+	{
+		do
+		{
+			cl = (rng.RANDOM() & 31);
+			rw = (rng.RANDOM() & 31);
+			//printf("          %02X, %02X = %02X\n", rw, cl, dungeon.MAZLND[dungeon.RC2IDX(rw, cl)]);
+			rndcell.setRC(rw, cl);
+			maz_idx = dungeon.RC2IDX(rw, cl);
+		} while (dungeon.MAZLND[maz_idx] == 0xFF);
+	} while (CFIND(rw, cl) == false);
+
+	//printf("----- %02X: %02X, %02X -----\n", typ, rw, cl);
+	CCBLND[u].P_CCROW = rw;
+	CCBLND[u].P_CCCOL = cl;
+
+	TCBindex = scheduler.GETTCB();
+	scheduler.TCBLND[TCBindex].data = u;
+	scheduler.TCBLND[TCBindex].type = Scheduler::TID_CRTMOVE;
+	scheduler.TCBLND[TCBindex].frequency = CCBLND[u].P_CCTMV;
+}
+
+// These two routines should probably be combined.
+// They check for a creature in the given cell
+bool Creature::CFIND(dodBYTE rw, dodBYTE cl)
+{
+	int ctr = 0;
+	while (ctr < 32)
+	{
+		if (CCBLND[ctr].P_CCROW == rw &&
+			CCBLND[ctr].P_CCCOL == cl)
+		{
+			if (CCBLND[ctr].P_CCUSE != 0)
+				return false;
+		}
+		++ctr;
+	}
+	return true;
+}
+
+// These two routines should probably be combined.
+// They check for a creature in the given cell
+int Creature::CFIND2(RowCol rc)
+{
+	int ctr = 0;
+	while (ctr < 32)
+	{
+		if (CCBLND[ctr].P_CCROW == rc.row &&
+			CCBLND[ctr].P_CCCOL == rc.col)
+		{
+			if (CCBLND[ctr].P_CCUSE != 0)
+			{
+				return ctr;
+			}
+		}
+		++ctr;
+	}
+	return -1;
+}
+
+/* player.cpp VERBATIM: only the pure combat/heart math is copied (the
+ * rest of the port's Player is SDL-entangled). */
+
+// Calculates and assesses damage from a successful attack
+bool Player::DAMAGE(int AP, int AMO, int APO,
+					int DP, int DMD, int DPD, dodSHORT * DD)
+{
+	int a;
+
+	a = ((AP * AMO) >> 7);
+	a = ((a * DMD) >> 7);
+	*DD += (dodSHORT) a;
+
+	a = ((AP * APO) >> 7);
+	a = ((a * DPD) >> 7);
+	*DD += (dodSHORT) a;
+
+	if ((dodSHORT) DP > *DD)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+/* stub wrapper; the HEARTR assignment line is player.cpp's HUPDAT line
+ * VERBATIM (the only non-SDL statement of Player::HUPDAT). */
+void Player::HUPDAT_heartr()
+{
+	HEARTR = (((PLRBLK.P_ATPOW) * 64) /
+			  ((PLRBLK.P_ATPOW) + ((PLRBLK.P_ATDAM) * 2))) - 18;
 }

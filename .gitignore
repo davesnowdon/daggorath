@@ -6,5 +6,19 @@
 build/
 *.log
 tests/golden/*.bin
+tests/golden/.build/
 __pycache__/
 *.pyc
+# host build artifacts
+desktop/daggorath
+tests/test_rng
+tests/test_draw
+tests/test_scale
+tests/ab_c
+tests/ab_ref
+tests/*.out
+*.gcda
+*.gcno
+*.c.gcov
+tools/wav2raw
+tools/print_maze

@@ -1,26 +1,25 @@
-/* A/B harness: drive the extracted C modules, dump comparable state. */
+/* A/B harness: drive the extracted C modules, dump comparable state.
+ * game/viewer globals and all no-op platform/viewer/sound stubs live in
+ * ab_stubs.c; player/sched/object/creature/dungeon/parser/rng are the
+ * real core modules. */
 #include <stdio.h>
 #include "dungeon.h"
 #include "parser.h"
 #include "game.h"
 #include "player.h"
+#include "object.h"
+#include "creature.h"
 #include "rng.h"
 #include "sched.h"
 #include "viewer.h"
-
-/* stub globals for modules that don't exist yet */
-game_state game;
-player_state player;
-sched_state sched;
-viewer_state viewer;
-
-/* stub for parser_CMDERR's viewer call */
-void viewer_OUTSTI(const uint8_t *packed) { (void)packed; }
 
 static unsigned crc = 0xFFFFFFFFu;
 static void h8(unsigned v)
 {
     unsigned i;
+#ifdef AB_TRACE   /* build both sides -DAB_TRACE to diff raw byte streams */
+    printf("%02X\n", v & 0xFF);
+#endif
     crc ^= v & 0xFF;
     for (i = 0; i < 8; ++i)
         crc = (crc >> 1) ^ (0xEDB88320u & (0u - (crc & 1u)));
@@ -117,5 +116,161 @@ int main(void)
         }
     }
     printf("PARSER  %08X\n", crc);
+
+    /* OBJECT: CreateAll table, FNDOBJ/OFIND traversal, seeded OBIRTHs */
+    crc = 0xFFFFFFFFu;
+    {
+        int k;
+        game.ShieldFix = 0;
+        game.VisionScroll = 0;
+        game.LEVEL = 0;
+        object_Reset();
+        object_CreateAll();
+        h8((unsigned)(object.OCBPTR & 0xFF));
+        h8((unsigned)(object.OFINDF & 0xFF));
+        h8((unsigned)(object.OFINDP & 0xFF));
+        h8(object.OBJTYP); h8(object.OBJCLS); h8(object.SPEFLG);
+        for (i = 0; i < 72; ++i) {
+            const OCB *o = &object.OCBLND[i];
+            h8((unsigned)(o->P_OCPTR & 0xFF));
+            h8(o->P_OCROW); h8(o->P_OCCOL); h8(o->P_OCLVL); h8(o->P_OCOWN);
+            h8(o->P_OCXX0 & 0xFF); h8((o->P_OCXX0 >> 8) & 0xFF);
+            h8(o->P_OCXX1 & 0xFF); h8((o->P_OCXX1 >> 8) & 0xFF);
+            h8(o->P_OCXX2 & 0xFF); h8((o->P_OCXX2 >> 8) & 0xFF);
+            h8(o->obj_id); h8(o->obj_type); h8(o->obj_reveal_lvl);
+            h8(o->P_OCMGO); h8(o->P_OCPHO);
+        }
+        /* FNDOBJ traversal per level */
+        for (lvl = 0; lvl < 5; ++lvl) {
+            int8_t idx;
+            game.LEVEL = (dodBYTE)lvl;
+            object.OFINDF = 0;
+            do {
+                idx = object_FNDOBJ();
+                h8((unsigned)(idx & 0xFF));
+            } while (idx != DOD_NONE);
+            h8((unsigned)(object.OFINDP & 0xFF));
+        }
+        /* OFIND on planted floor objects */
+        object.OCBLND[2].P_OCOWN = 0;
+        object.OCBLND[2].P_OCROW = 3;  object.OCBLND[2].P_OCCOL = 4;
+        object.OCBLND[10].P_OCOWN = 0;
+        object.OCBLND[10].P_OCROW = 3; object.OCBLND[10].P_OCCOL = 4;
+        object.OCBLND[30].P_OCOWN = 0;
+        object.OCBLND[30].P_OCROW = 7; object.OCBLND[30].P_OCCOL = 9;
+        for (lvl = 0; lvl < 5; ++lvl) {
+            RowCol rc1, rc2;
+            rc1.row = 3; rc1.col = 4;
+            rc2.row = 7; rc2.col = 9;
+            game.LEVEL = (dodBYTE)lvl;
+            object.OFINDF = 0;
+            h8((unsigned)(object_OFIND(rc1) & 0xFF));
+            object.OFINDF = 0;
+            h8((unsigned)(object_OFIND(rc2) & 0xFF));
+        }
+        /* deterministic extra OBIRTHs + placements (CreateAll made 63
+         * objects; 8 more keeps OCBPTR within the 72-entry OCBLND) */
+        rng_set_seed(0x12, 0x34, 0x56);
+        for (k = 0; k < 8; ++k) {
+            dodBYTE typ, olvl;
+            int8_t x;
+            typ = (dodBYTE)(rng_RANDOM() % 18);
+            olvl = (dodBYTE)(rng_RANDOM() % 5);
+            x = object_OBIRTH(typ, olvl);
+            object.OCBLND[x].P_OCROW = (dodBYTE)(rng_RANDOM() & 31);
+            object.OCBLND[x].P_OCCOL = (dodBYTE)(rng_RANDOM() & 31);
+            h8((unsigned)(x & 0xFF));
+        }
+        h8((unsigned)(object.OCBPTR & 0xFF));
+        for (i = 0; i < 72; ++i) {
+            const OCB *o = &object.OCBLND[i];
+            h8((unsigned)(o->P_OCPTR & 0xFF));
+            h8(o->P_OCROW); h8(o->P_OCCOL); h8(o->P_OCLVL); h8(o->P_OCOWN);
+            h8(o->P_OCXX0 & 0xFF); h8((o->P_OCXX0 >> 8) & 0xFF);
+            h8(o->P_OCXX1 & 0xFF); h8((o->P_OCXX1 >> 8) & 0xFF);
+            h8(o->P_OCXX2 & 0xFF); h8((o->P_OCXX2 >> 8) & 0xFF);
+            h8(o->obj_id); h8(o->obj_type); h8(o->obj_reveal_lvl);
+            h8(o->P_OCMGO); h8(o->P_OCPHO);
+        }
+    }
+    printf("OBJECT  %08X\n", crc);
+
+    /* CREATUR: NEWLVL per level; CCBs, object links, scheduler TCBs.
+     * Our frequencies are already jiffies: CRC them raw (the ref dumps
+     * the port's milliseconds as (ms*6)/100 = jiffies). */
+    crc = 0xFFFFFFFFu;
+    {
+        game.RandomMaze = 0;
+        game.IsDemo = 0;
+        game.ShieldFix = 0;
+        game.VisionScroll = 0;
+        object_Reset();
+        object_CreateAll();
+        creature_Reset();
+        for (lvl = 0; lvl < 5; ++lvl) {
+            game.LEVEL = (dodBYTE)lvl;
+            player.PROW = 0x10;
+            player.PCOL = 0x0B;
+            sched.curTime = 0;
+            creature_NEWLVL();
+            for (i = 0; i < 32; ++i) {
+                const CCB *cc = &creature.CCBLND[i];
+                h8(cc->P_CCPOW & 0xFF); h8((cc->P_CCPOW >> 8) & 0xFF);
+                h8(cc->P_CCMGO); h8(cc->P_CCMGD);
+                h8(cc->P_CCPHO); h8(cc->P_CCPHD);
+                h8(cc->P_CCTMV & 0xFF); h8((cc->P_CCTMV >> 8) & 0xFF);
+                h8(cc->P_CCTAT & 0xFF); h8((cc->P_CCTAT >> 8) & 0xFF);
+                h8((unsigned)(cc->P_CCOBJ & 0xFF));
+                h8(cc->P_CCDAM & 0xFF); h8((cc->P_CCDAM >> 8) & 0xFF);
+                h8(cc->P_CCUSE); h8(cc->creature_id); h8(cc->P_CCDIR);
+                h8(cc->P_CCROW); h8(cc->P_CCCOL);
+            }
+            h8((unsigned)(creature.CMXPTR & 0xFF));
+            for (i = 0; i < 72; ++i) {
+                h8((unsigned)(object.OCBLND[i].P_OCPTR & 0xFF));
+                h8(object.OCBLND[i].P_OCOWN);
+            }
+            for (i = 0; i < sched.TCBPTR; ++i) {
+                h8((unsigned)(sched.TCBLND[i].type & 0xFF));
+                h8((unsigned)(sched.TCBLND[i].data & 0xFF));
+                h8(sched.TCBLND[i].frequency & 0xFF);
+                h8((sched.TCBLND[i].frequency >> 8) & 0xFF);
+            }
+            h8((unsigned)(sched.TCBPTR & 0xFF));
+        }
+        for (i = 0; i < 60; ++i) h8(creature.CMXLND[i]);
+    }
+    printf("CREATUR %08X\n", crc);
+
+    /* PLRMATH: DAMAGE over seeded pseudo-random tuples + HEARTR sweep */
+    crc = 0xFFFFFFFFu;
+    {
+        dodSHORT DD = 0;
+        int k, pw, dm;
+        rng_set_seed(0xAB, 0xCD, 0xEF);
+        for (k = 0; k < 2000; ++k) {
+            dodBYTE r1, r2, r3, r4, r5, r6, r7, r8;
+            dodSHORT AP, DP;
+            dodBYTE AMO, APO, DMD, DPD;
+            uint8_t ret;
+            r1 = rng_RANDOM(); r2 = rng_RANDOM();
+            r3 = rng_RANDOM(); r4 = rng_RANDOM();
+            r5 = rng_RANDOM(); r6 = rng_RANDOM();
+            r7 = rng_RANDOM(); r8 = rng_RANDOM();
+            AP = (dodSHORT)(((r1 & 0x1F) << 8) | r2);
+            AMO = r3; APO = r4;
+            DP = (dodSHORT)(((r5 & 0x1F) << 8) | r6);
+            DMD = r7; DPD = r8;
+            ret = player_DAMAGE(AP, AMO, APO, DP, DMD, DPD, &DD);
+            h8(ret ? 1u : 0u);
+            h8(DD & 0xFF); h8((DD >> 8) & 0xFF);
+        }
+        for (pw = 1; pw <= 500; pw += 7) {
+            for (dm = 0; dm <= 300; dm += 11) {
+                h8(player_heartr_formula((dodSHORT)pw, (dodSHORT)dm));
+            }
+        }
+    }
+    printf("PLRMATH %08X\n", crc);
     return 0;
 }

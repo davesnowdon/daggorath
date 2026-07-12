@@ -296,13 +296,19 @@ int8_t player_HSLOW(void)
  * The original division routine added one to the integer quotient so
  * that [(1/5) == 1], [(5/5) == 2], etc.; the formula below reflects
  * that peculiarity by only subtracting 18 (port comment).  The original
- * used 24-bit intermediates (PPOW*64 reaches 22 bits) -> uint32_t. */
+ * used 24-bit intermediates (PPOW*64 reaches 22 bits) -> uint32_t.
+ * The formula itself is a pure helper so the A/B harness can drive it. */
+dodBYTE player_heartr_formula(dodSHORT pow, dodSHORT dam)
+{
+    uint32_t quot = ((uint32_t)pow * 64u) /
+                    ((uint32_t)pow + ((uint32_t)dam * 2u));
+    return (dodBYTE)(quot - 18u);
+}
+
 void player_HUPDAT(void)
 {
-    uint32_t quot = ((uint32_t)player.PLRBLK.P_ATPOW * 64u) /
-                    ((uint32_t)player.PLRBLK.P_ATPOW +
-                     ((uint32_t)player.PLRBLK.P_ATDAM * 2u));
-    player.HEARTR = (dodBYTE)(quot - 18u);
+    player.HEARTR = player_heartr_formula(player.PLRBLK.P_ATPOW,
+                                          player.PLRBLK.P_ATDAM);
 
     if (player.FAINT == 0) {
         /* not in a faint */

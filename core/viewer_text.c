@@ -19,6 +19,7 @@
 #include "player.h"
 #include "object.h"
 #include "creature.h"
+#include "game.h"
 #include "tables_font.h"
 #include "tables_text.h"
 
@@ -166,6 +167,9 @@ void viewer_OUTSTI(const uint8_t *packed)
 /* the '?_' command prompt */
 void viewer_PROMPT(void)
 {
+    if (core_prompt_hook != 0) {
+        core_prompt_hook();
+    }
     viewer_OUTSTR(M_PROM1);
 }
 

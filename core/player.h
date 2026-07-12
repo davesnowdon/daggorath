@@ -56,6 +56,8 @@ uint8_t player_HUMAN(dodBYTE c);     /* one keystroke of command input */
 int8_t player_HSLOW(void);           /* heart-slow task */
 int8_t player_BURNER(void);          /* torch burn task */
 void player_HUPDAT(void);            /* heart update: J=(P*64)/(P+2D)-19 */
+/* the raw HEARTR formula (HUPDAT.ASM divide quirk: -18 not -19); pure */
+dodBYTE player_heartr_formula(dodSHORT pow, dodSHORT dam);
 uint8_t player_ATTACK(dodSHORT AP, dodSHORT DP, dodSHORT DD);
 /* 7th arg is the defender's accumulated-damage accumulator, exactly as
  * in the port's DAMAGE(int,int,int,int,int,int,dodSHORT*): &PDAM when a

@@ -117,6 +117,11 @@ static void kbd_poll(void)
     }
 }
 
+void sched_kbd_poll(void)
+{
+    kbd_poll();
+}
+
 /* any key pending?  (port Scheduler::keyCheck; the ring is parser's) */
 static uint8_t key_pending(void)
 {

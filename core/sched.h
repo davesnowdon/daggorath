@@ -63,6 +63,10 @@ void sched_Reset(void);
 void sched_SYSTCB(void);            /* build the initial TCB table */
 int8_t sched_GETTCB(void);          /* allocate a task slot */
 void sched_CLOCK(void);             /* heartbeat + keyboard, 1/jiffy */
+/* pump platform keys into the parser ring NOW, ignoring the FAINT gate
+ * (the port's fades poll SDL events directly via Scheduler::keyCheck,
+ * so a death that happens during a faint can still be dismissed) */
+void sched_kbd_poll(void);
 
 uint8_t core_pump(void);            /* returns PUMP_* */
 void core_wait_jiffies(jiffy_t n);

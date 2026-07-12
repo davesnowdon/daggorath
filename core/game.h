@@ -25,6 +25,10 @@ extern game_state game;
 #define GAME_DEMO_LEN 45
 extern const dodBYTE GAME_DEMO_CMDS[GAME_DEMO_LEN];
 
+/* Optional shell hook fired by viewer_PROMPT at every command boundary
+ * (scenario state dumps).  NULL = off; 8-bit backends leave it NULL. */
+extern void (*core_prompt_hook)(void);
+
 void game_COMINI(void);   /* cold start: title, demo, wait for key */
 void game_INIVU(void);    /* view initialization */
 void game_Restart(void);
