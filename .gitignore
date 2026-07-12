@@ -1,0 +1,8 @@
+*.o
+*.nex
+*.prg
+*.d81
+*.raw
+build/
+*.log
+tests/golden/*.bin
