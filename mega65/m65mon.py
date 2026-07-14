@@ -36,6 +36,7 @@ SCAN = {
 }
 
 BOOTSTRAP_ADDR = 0x0340   # tape buffer: LDX #$FF TXS JMP entry
+IRQ_STUB_ADDR = 0x0350    # ack CIA1+VIC, then kernal-stub unwind + RTI
 
 
 def read_reply(s, timeout=3.0):
@@ -91,6 +92,14 @@ def inject(s, path):
     entry = prg_entry(payload, load)
     print("PRG: %d bytes at $%04X, entry $%04X" % (len(payload), load, entry))
 
+    # A previous run's raster IRQ may still be live, with its $0314
+    # vector pointing into the bytes about to be overwritten - park
+    # the vector on a minimal handler first.  It must ACK the sources
+    # (LDA $DC0D / $FF -> $D019) or the un-acked interrupt storms the
+    # CPU into the ROM's IRQ entry the moment anything CLIs.
+    send(s, "s%x ad 0d dc a9 ff 8d 19 d0 68 a8 68 aa 68 40" % IRQ_STUB_ADDR)
+    send(s, "s0314 %02x %02x" % (IRQ_STUB_ADDR & 0xFF, IRQ_STUB_ADDR >> 8))
+
     for off in range(0, len(payload), 32):
         chunk = payload[off:off + 32]
         send(s, "s%x %s" % (load + off, " ".join("%02x" % b for b in chunk)))
@@ -104,7 +113,11 @@ def inject(s, path):
             sys.exit("verify FAILED at $%04X:\n%s" % (load + off, got))
     print("verify OK")
 
-    # reset the hardware stack, then jump: LDX #$FF TXS JMP entry
+    # Reset the hardware stack, then jump: LDX #$FF TXS JMP entry.
+    # No SEI: llvm-mos's crt0 chain includes a charset-shift init that
+    # calls the KERNAL's CHROUT, which needs the ROM IRQ alive (the
+    # parked vector above keeps those IRQs harmless until plat_init
+    # takes the machine over).
     boot = [0xA2, 0xFF, 0x9A, 0x4C, entry & 0xFF, entry >> 8]
     send(s, "s%x %s" % (BOOTSTRAP_ADDR, " ".join("%02x" % b for b in boot)))
     send(s, "g%x" % BOOTSTRAP_ADDR)

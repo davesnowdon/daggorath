@@ -33,14 +33,15 @@
 #define BITMAP_ADDR 0x18000UL     /* 8K bitmap (must be 8K-aligned)   */
 #define MATRIX_ADDR 0x1A000UL     /* 40x25 colour matrix              */
 
-/* Shadow framebuffer: identical layout to the hardware bitmap, so the
- * whole present is one linear DMA.  Pixel row y starts (at window
- * x = 0, i.e. cell column 4) at rowbase[y]; the byte for pixel x is
- * then + (x & 0xF8) and the bit is 0x80 >> (x & 7).  Only cell rows
- * 0-23 (= 192 pixel rows) exist; the bitmap's row 24 is blanked once
- * at init and never copied again.  Before the first draw it doubles
- * as the SFX loader's bounce buffer (bank 0 is too tight for both). */
-static uint8_t fb[7680];
+/* Shadow framebuffer: the hardware bitmap's 8x8 cell interleave, but
+ * only the 256-pixel window wide (32 cells; the bitmap's side margins
+ * and its row 24 are blanked once at init and never touched again).
+ * Pixel row y starts at rowbase[y] = (y>>3)*256 + (y&7); the byte for
+ * pixel x is + (x & 0xF8) and the bit is 0x80 >> (x & 7).  A cell row
+ * here (256 bytes) is contiguous in the bitmap too, so present is 24
+ * row-block DMAs.  Before the first draw the buffer doubles as the
+ * SFX loader's bounce buffer (bank 0 is too tight for both). */
+static uint8_t fb[6144];
 static uint16_t rowbase[192];
 uint8_t *const plat_init_bounce = fb;
 
@@ -64,7 +65,12 @@ struct __attribute__((packed)) dma_list {
 };
 _Static_assert(sizeof(struct dma_list) == 17, "DMA list must be packed");
 
-static struct dma_list dl;
+/* volatile: the DMAgic reads the list from memory when the trigger
+ * register is poked - without it the optimizer may defer or merge the
+ * field stores across the (volatile) trigger POKEs, firing a stale
+ * list.  Exactly that sprayed the ROM boot screen's $20s over bank 1
+ * before this was volatile. */
+static volatile struct dma_list dl;
 
 static void dma_run(void)
 {
@@ -180,7 +186,7 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
  * glyph scanlines are written (COMTXT.ASM deposits 7 bytes). */
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
-    uint8_t *p = fb + (uint16_t)row * 320u + 32u + ((uint16_t)col << 3);
+    uint8_t *p = fb + ((uint16_t)row << 8) + ((uint16_t)col << 3);
     uint8_t k;
     for (k = 0; k < 7u; ++k) {
         p[k] = rows[k];
@@ -189,7 +195,7 @@ void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 
 void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
 {
-    uint8_t *p = fb + (uint16_t)row * 320u + 32u + ((uint16_t)col << 3);
+    uint8_t *p = fb + ((uint16_t)row << 8) + ((uint16_t)col << 3);
     uint8_t k, c;
     for (c = 0; c < ncols; ++c) {
         for (k = 0; k < 7u; ++k) {
@@ -201,9 +207,13 @@ void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
 
 void plat_present(void)
 {
-    /* one linear DMA: the shadow buffer already has the bitmap layout
-     * (8000 bytes at 40 MHz DMA is ~0.2 ms - no double buffer needed) */
-    plat_lcopy((uint32_t)(uintptr_t)fb, BITMAP_ADDR, sizeof fb);
+    /* 24 row-block DMAs (256 bytes each into the 320-byte bitmap
+     * rows); still well under a millisecond - no double buffer */
+    uint8_t r;
+    for (r = 0; r < 24u; ++r) {
+        plat_lcopy((uint32_t)(uintptr_t)fb + ((uint16_t)r << 8),
+                   BITMAP_ADDR + (uint16_t)r * 320u + 32u, 256u);
+    }
 }
 
 /* ---- sound: implementation in sound_mega65.c --------------------------- */
@@ -297,7 +307,7 @@ void plat_init(void)
     VICIV.screencol = 0x00;
 
     for (y = 0; y < 192u; ++y) {
-        rowbase[y] = (uint16_t)(((y >> 3) * 320u) + (y & 7u) + 32u);
+        rowbase[y] = (uint16_t)(((y >> 3) << 8) + (y & 7u));
     }
 
     lfill(BITMAP_ADDR, 0x00, 8000);          /* blank the live bitmap  */
