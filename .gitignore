@@ -37,3 +37,5 @@ tests/ab_mos
 mega65/daggorath.prg
 mega65/daggorath.prg.elf
 mega65/daggorath.map
+mega65/DAGGOR65.SFX
+mega65/sfx_index65.h

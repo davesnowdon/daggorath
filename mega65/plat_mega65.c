@@ -16,8 +16,9 @@
  *          the handler (irq.s) counts jiffies with the same 6/5
  *          accumulator as the Next ISR (PAL: 60 jiffies / 50 frames;
  *          NTSC per $D06F.7 counts 1:1).
- * Sound    stubbed - Audio DMA playback is the next milestone.
- * Save     stubbed - hyppo file access comes with the sound loader.
+ * Sound    Audio DMA channel 0 (sound_mega65.c): the SFX blob streams
+ *          from the SD through hyppo file reads into chip RAM at init.
+ * Save     stubbed - mega65-libc exposes no hyppo write; Phase 4.
  */
 #include <stdint.h>
 #include <string.h>
@@ -35,9 +36,13 @@
 /* Shadow framebuffer: identical layout to the hardware bitmap, so the
  * whole present is one linear DMA.  Pixel row y starts (at window
  * x = 0, i.e. cell column 4) at rowbase[y]; the byte for pixel x is
- * then + (x & 0xF8) and the bit is 0x80 >> (x & 7). */
-static uint8_t fb[8000];
+ * then + (x & 0xF8) and the bit is 0x80 >> (x & 7).  Only cell rows
+ * 0-23 (= 192 pixel rows) exist; the bitmap's row 24 is blanked once
+ * at init and never copied again.  Before the first draw it doubles
+ * as the SFX loader's bounce buffer (bank 0 is too tight for both). */
+static uint8_t fb[7680];
 static uint16_t rowbase[192];
+uint8_t *const plat_init_bounce = fb;
 
 /* ---- DMAgic: minimal enhanced-mode copy/fill --------------------------- */
 /* One static enhanced-format list: two option bytes select the source
@@ -71,7 +76,7 @@ static void dma_run(void)
                                                         (CPU is held) */
 }
 
-static void lcopy(uint32_t src, uint32_t dst, uint16_t n)
+void plat_lcopy(uint32_t src, uint32_t dst, uint16_t n)
 {
     dl.opt_src_mb_tag = 0x80; dl.src_mb = (uint8_t)(src >> 20);
     dl.opt_dst_mb_tag = 0x81; dl.dst_mb = (uint8_t)(dst >> 20);
@@ -198,23 +203,11 @@ void plat_present(void)
 {
     /* one linear DMA: the shadow buffer already has the bitmap layout
      * (8000 bytes at 40 MHz DMA is ~0.2 ms - no double buffer needed) */
-    lcopy((uint32_t)(uintptr_t)fb, BITMAP_ADDR, sizeof fb);
+    plat_lcopy((uint32_t)(uintptr_t)fb, BITMAP_ADDR, sizeof fb);
 }
 
-/* ---- sound: stubs until the Audio DMA milestone ------------------------ */
-void plat_sound_play(uint8_t sound_id, uint8_t volume)
-{
-    (void)sound_id; (void)volume;
-}
-
-void plat_sound_stop(void)
-{
-}
-
-uint8_t plat_sound_playing(void)
-{
-    return 0;
-}
+/* ---- sound: implementation in sound_mega65.c --------------------------- */
+extern void snd_load_blob(void);
 
 /* ---- input -------------------------------------------------------------- */
 /* $D610: oldest queued key as ASCII (0 = empty); any write pops it. */
@@ -309,6 +302,10 @@ void plat_init(void)
 
     lfill(BITMAP_ADDR, 0x00, 8000);          /* blank the live bitmap  */
     lfill(MATRIX_ADDR, 0x10, 1000);          /* white ink, black paper */
+
+    snd_load_blob();                         /* hyppo SD read; silent
+                                                no-op if absent.  Uses
+                                                fb as bounce buffer */
     plat_clear();
 
     /* jiffy clock: raster IRQ only, all CIA sources off */
