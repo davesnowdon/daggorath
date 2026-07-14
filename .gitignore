@@ -34,3 +34,6 @@ tests/z80draw/*
 !tests/z80draw/*.asm
 !tests/z80draw/run.sh
 tests/ab_mos
+mega65/daggorath.prg
+mega65/daggorath.prg.elf
+mega65/daggorath.map
