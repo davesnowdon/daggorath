@@ -24,9 +24,14 @@ SFXDIR := ../assets/raw-7350
 DAGGOR65.SFX sfx_index65.h: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
 	python3 ../tools/gen_sfxbin.py $(SFXDIR) DAGGOR65.SFX sfx_index65.h 7350
 
+# distributable disk image (PRG inside; DAGGOR65.SFX still goes in the
+# SD card's FAT root - hyppo reads it from there, not from the D81)
+daggorath.d81: daggorath.prg ../tools/make_d81.py
+	python3 ../tools/make_d81.py $@ DAGGORATH daggorath.prg DAGGORATH
+
 .PHONY: clean run
 clean:
-	rm -f daggorath.prg daggorath.prg.elf daggorath.map \
+	rm -f daggorath.prg daggorath.prg.elf daggorath.map daggorath.d81 \
 	      DAGGOR65.SFX sfx_index65.h
 
 # boot into xemu with the virtual SD (window opens; close it to stop)
