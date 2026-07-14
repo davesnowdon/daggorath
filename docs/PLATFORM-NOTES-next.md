@@ -42,20 +42,35 @@ in 8K MMU pages, not the main map.
   for the duration), `send-keys-event <ascii> <1|0>`.  Addresses are
   decimal.  `tools/../scratch zrcp.py`-style socket client beats nc.
 
-## Deliberate first-light simplifications (to revisit)
+## Resolved since first light
 
-1. **Sound stubbed** (`plat_sound_playing()` = 0, so `snd_wait_done`
-   returns instantly).  Plan: samples in 8K pages + zxnDMA to the DAC.
-2. **Single-buffered ULA drawing** - full-screen redraws are visible
-   (the core redraws the whole 3D view per update).  Plan: draw to the
-   bank-7 shadow screen and flip 0x7FFD bit 3 in vblank.
-3. **C rasterizer** (exact draw_ref DDA with 24.8 math) - correct but
-   slow; a room redraw takes visible fractions of a second at 28 MHz.
-   Plan: Z80n draw.asm (PIXELAD/SETAE/PIXELDN, MUL D,E) verified
-   against draw_ref pixel-for-pixel.
-4. **50 Hz assumed** - 60 Hz HDMI modes will run ~20% fast until the
-   video-timing nextreg is consulted.
-5. **No save/load** (PLAT_ERR_UNSUPPORTED) - esxDOS wiring later.
+1. **Sound**: 26 SFX (u8, 11025 Hz) pack into `daggorath.sfx`
+   (tools/gen_sfxbin.py), esxDOS-loaded at init into 8K pages 32+ and
+   streamed to the Covox DAC (0xFFDF) by the zxnDMA (prescalar 79 =
+   875000/11025; em00k's register program).  Multi-page samples are
+   re-armed per chunk from the frame ISR through an MMU slot-1 window.
+   Verified in ZEsarUX via `--aofile` capture.  LIMITATION: the Covox
+   has no level control, so creature-distance volume is flat for now.
+2. **Double buffering**: 0x4000 maps bank 7's low page (draw buffer);
+   present copies the bitmap to bank 5 through a temporary MMU slot-0
+   mapping.
+3. **Z80n rasterizer** (`draw_z80n.asm`): 13.4x the zsdcc C version,
+   proven pixel-identical to core/draw_ref.c over a 2716-line corpus
+   run under z88dk-ticks (`tests/z80draw/run.sh`, must print Z80DRAW
+   IDENTICAL).  Build with `-DDRAW_C_FALLBACK` to swap the C DDA back
+   in.  PIXELAD/SETAE are deliberately NOT used: z88dk-ticks executes
+   them as NOPs, which would have blinded the verification.
+4. **50/60 Hz**: REG_PERIPHERAL_1 read at init; the ISR counts 1
+   jiffy/frame at 60 Hz instead of the 6/5 pattern.
+5. **Save/load**: ZSAVE/ZLOAD -> `daggorath.sav` via esxDOS.
+
+## Still open
+
+- Volume scaling (pre-scaled sample tiers, or a CPU scale into a
+  bounce page at play time).
+- Fixed-scene screenshot diff vs the desktop shim; 60 s heartbeat
+  stopwatch check; CSpect second opinion; real-hardware SD boot
+  (copy daggorath.nex + daggorath.sfx into the same SD folder).
 
 ## Build & run
 

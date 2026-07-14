@@ -1,0 +1,126 @@
+/* host_check.c - gcc-side referee for the z80 draw identity test.
+ *
+ * Replays the same corpus (corpus_data.h) through the NORMATIVE
+ * reference core/draw_ref.c into a byte-per-pixel map whose initial
+ * contents unpack the wrapper's deterministic ULA prefill, packs the
+ * result into the ULA thirds-interleave layout (identical to
+ * plat_next.c's row_addr/bit_mask), and compares byte-for-byte against
+ * the 6144-byte bitmap slice [0x4000,0x5800) of the z88dk-ticks RAM
+ * dump.  Prints "Z80DRAW IDENTICAL" on success, else a diff summary.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "draw_ref.h"
+#include "corpus_data.h"
+
+#define FB_BYTES   6144u
+#define FB_BASE    0x4000u
+#define SENT_ADDR  0x5B00u
+
+static uint16_t rowoff(unsigned y)
+{
+    return (uint16_t)(((y & 0xC0u) << 5) | ((y & 0x07u) << 8)
+                      | ((y & 0x38u) << 2));
+}
+
+static uint8_t prefill(unsigned i)
+{
+    return (uint8_t)((i & 0xFFu) ^ ((i >> 8) & 0xFFu) ^ 0x5Au);
+}
+
+int main(int argc, char **argv)
+{
+    static uint8_t ram[65536];
+    static uint8_t map[FB_HEIGHT * FB_WIDTH];   /* byte per pixel */
+    static uint8_t expect[FB_BYTES];
+    unsigned x, y, i, ndiff, shown;
+    FILE *fp;
+    size_t got;
+
+    if (argc != 2) {
+        fprintf(stderr, "usage: host_check <ticks-ram-dump>\n");
+        return 2;
+    }
+    fp = fopen(argv[1], "rb");
+    if (!fp) {
+        fprintf(stderr, "host_check: cannot open %s\n", argv[1]);
+        return 2;
+    }
+    got = fread(ram, 1, sizeof ram, fp);
+    fclose(fp);
+    if (got < FB_BASE + FB_BYTES) {
+        fprintf(stderr, "host_check: dump too short (%zu bytes)\n", got);
+        return 2;
+    }
+
+    if (ram[SENT_ADDR] != 0xC5u || ram[SENT_ADDR + 1] != 0x5Cu) {
+        fprintf(stderr,
+                "host_check: completion sentinel missing (%02X %02X) - "
+                "the z80 wrapper did not run to completion\n",
+                ram[SENT_ADDR], ram[SENT_ADDR + 1]);
+        return 2;
+    }
+
+    /* unpack the wrapper's prefill into the byte-per-pixel map */
+    for (y = 0; y < FB_HEIGHT; ++y) {
+        for (x = 0; x < FB_WIDTH; ++x) {
+            unsigned off = rowoff(y) + (x >> 3);
+            map[y * FB_WIDTH + x] =
+                (uint8_t)((prefill(off) >> (7u - (x & 7u))) & 1u);
+        }
+    }
+
+    /* replay through the normative reference */
+    for (i = 0; i < CORPUS_COUNT; ++i) {
+        const corpus_rec *r = &corpus[i];
+        draw_line_ref(map, r->x0, r->y0, r->x1, r->y1,
+                      r->vctfad, (uint8_t)(r->flags & 0x01u),
+                      0, (uint8_t)FB_HEIGHT);
+    }
+
+    /* pack to the ULA layout */
+    memset(expect, 0, sizeof expect);
+    for (y = 0; y < FB_HEIGHT; ++y) {
+        for (x = 0; x < FB_WIDTH; ++x) {
+            if (map[y * FB_WIDTH + x]) {
+                expect[rowoff(y) + (x >> 3)] |=
+                    (uint8_t)(0x80u >> (x & 7u));
+            }
+        }
+    }
+
+    /* compare */
+    ndiff = 0;
+    shown = 0;
+    for (i = 0; i < FB_BYTES; ++i) {
+        if (expect[i] != ram[FB_BASE + i]) {
+            if (shown < 16) {
+                /* decode offset back to (y, xbyte) for the report */
+                unsigned yy;
+                for (yy = 0; yy < FB_HEIGHT; ++yy) {
+                    if (rowoff(yy) == (i & ~31u)) {
+                        break;
+                    }
+                }
+                fprintf(stderr,
+                        "  diff @0x%04X (y=%u xbyte=%u): "
+                        "expect %02X got %02X\n",
+                        FB_BASE + i, yy, i & 31u,
+                        expect[i], ram[FB_BASE + i]);
+                ++shown;
+            }
+            ++ndiff;
+        }
+    }
+
+    if (ndiff == 0) {
+        printf("Z80DRAW IDENTICAL (%u lines, %u framebuffer bytes)\n",
+               (unsigned)CORPUS_COUNT, FB_BYTES);
+        return 0;
+    }
+    fprintf(stderr, "Z80DRAW MISMATCH: %u of %u bytes differ\n",
+            ndiff, FB_BYTES);
+    return 1;
+}

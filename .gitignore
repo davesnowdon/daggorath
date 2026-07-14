@@ -26,3 +26,10 @@ spectrum-next/daggorath
 spectrum-next/daggorath_CODE.bin
 spectrum-next/*.map
 spectrum-next/*.nex
+spectrum-next/daggorath.sfx
+spectrum-next/daggorath.sav
+tests/z80draw/build/
+tests/z80draw/*
+!tests/z80draw/*.c
+!tests/z80draw/*.asm
+!tests/z80draw/run.sh

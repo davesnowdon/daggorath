@@ -15,6 +15,7 @@ SECTION code_user
 PUBLIC _frame_isr
 PUBLIC _isr_jiffies
 EXTERN _kbd_isr_scan
+EXTERN _snd_isr_tick
 
 _frame_isr:
     push af
@@ -37,11 +38,13 @@ store:
 
     ; scan the keyboard matrix every frame, even while the game is
     ; CPU-bound (kbd_isr_scan is sdcc-compiled C: save its registers;
-    ; IY belongs to the CLIB and is not touched by sdcc code)
+    ; IY belongs to the CLIB and is not touched by sdcc code), then
+    ; feed the zxnDMA sample stream its next chunk if one is due
     push bc
     push de
     push ix
     call _kbd_isr_scan
+    call _snd_isr_tick
     pop  ix
     pop  de
     pop  bc

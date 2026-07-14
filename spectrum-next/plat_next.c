@@ -27,10 +27,6 @@
 /* ULA scanline base addresses (thirds/character interleave) */
 static uint8_t *row_addr[192];
 
-static const uint8_t bit_mask[8] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
-
 /* ---- video ------------------------------------------------------------ */
 void plat_clear(void)
 {
@@ -39,7 +35,29 @@ void plat_clear(void)
 
 /* EXACTLY the VECTOR.ASM algorithm - see core/draw_ref.c, the normative
  * reference.  24.8 fixed point, plot-candidate-then-step, endpoint never
- * plotted, dot-period fades, x-clip on the integer high byte. */
+ * plotted, dot-period fades, x-clip on the integer high byte.
+ *
+ * The shipping rasterizer is draw_z80n.asm (Z80n assembly, verified
+ * pixel-identical to draw_ref by tests/z80draw/run.sh under
+ * z88dk-ticks).  Build with -DDRAW_C_FALLBACK to use the original C
+ * DDA below instead - kept compiled in as the reference fallback. */
+extern void plat_draw_line_asm(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                               uint8_t vctfad, uint8_t flags);
+
+#ifndef DRAW_C_FALLBACK
+
+void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                    uint8_t vctfad, uint8_t flags)
+{
+    plat_draw_line_asm(x0, y0, x1, y1, vctfad, flags);
+}
+
+#else /* DRAW_C_FALLBACK */
+
+static const uint8_t bit_mask[8] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+};
+
 static int16_t incre(int16_t delta, uint16_t length)
 {
     int32_t q = ((int32_t)(delta < 0 ? -delta : delta) << 8)
@@ -98,6 +116,8 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     }
 }
 
+#endif /* DRAW_C_FALLBACK */
+
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
     uint8_t y = (uint8_t)(row << 3);
@@ -132,20 +152,8 @@ void plat_present(void)
     ZXN_NEXTREG(0x50, 0xFF);          /* MMU0 <- ROM */
 }
 
-/* ---- sound (stub) ------------------------------------------------------ */
-void plat_sound_play(uint8_t sound_id, uint8_t volume)
-{
-    (void)sound_id; (void)volume;
-}
-
-void plat_sound_stop(void)
-{
-}
-
-uint8_t plat_sound_playing(void)
-{
-    return 0;
-}
+/* ---- sound: real implementation lives in sound_next.c ------------------ */
+extern void snd_load_blob(void);
 
 /* ---- input ------------------------------------------------------------ */
 /* Direct 8x5 matrix scan of port 0xFE with per-key edge detection (a
@@ -317,6 +325,8 @@ void plat_init(void)
      * accumulator in the ISR */
     isr_sixty = (uint8_t)
         ((ZXN_READ_REG(REG_PERIPHERAL_1) & RP1_RATE_60) ? 1 : 0);
+
+    snd_load_blob();
 
     intrinsic_ei();
 }
