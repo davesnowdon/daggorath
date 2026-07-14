@@ -22,3 +22,7 @@ tests/*.out
 *.c.gcov
 tools/wav2raw
 tools/print_maze
+spectrum-next/daggorath
+spectrum-next/daggorath_CODE.bin
+spectrum-next/*.map
+spectrum-next/*.nex

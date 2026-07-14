@@ -1,0 +1,288 @@
+/* plat_next.c - ZX Spectrum Next backend (first-light version: all C).
+ *
+ * Video    ULA 256x192 bitmap at 0x4000, drawn directly (single buffer;
+ *          the bank-7 shadow flip comes with the asm rasterizer pass).
+ *          The line rasterizer below must match core/draw_ref.c pixel
+ *          for pixel - same DDA, only the plot primitive differs
+ *          (bit-packed ULA bytes instead of a byte-per-pixel map).
+ * Input    in_inkey() polled once per plat_poll_key with edge detection.
+ * Timing   EI + HALT paces plat_yield to the 50 Hz frame interrupt; a
+ *          +1,+1,+1,+1,+2 accumulator yields exactly 60 jiffies per 50
+ *          frames.  (60 Hz display modes run ~20% fast for now; the
+ *          polish pass reads the video-timing nextreg.)
+ * Sound    stubbed - zxnDMA DAC playback is a later milestone.
+ */
+#include <arch/zxn.h>
+#include <intrinsic.h>
+#include <im2.h>
+#include <string.h>
+#include <stdint.h>
+
+#include "platform.h"
+
+#define ULA_BITMAP ((uint8_t *)0x4000)
+#define ULA_ATTR   ((uint8_t *)0x5800)
+
+/* ULA scanline base addresses (thirds/character interleave) */
+static uint8_t *row_addr[192];
+
+static const uint8_t bit_mask[8] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+};
+
+/* ---- video ------------------------------------------------------------ */
+void plat_clear(void)
+{
+    memset(ULA_BITMAP, 0, 6144);
+}
+
+/* EXACTLY the VECTOR.ASM algorithm - see core/draw_ref.c, the normative
+ * reference.  24.8 fixed point, plot-candidate-then-step, endpoint never
+ * plotted, dot-period fades, x-clip on the integer high byte. */
+static int16_t incre(int16_t delta, uint16_t length)
+{
+    int32_t q = ((int32_t)(delta < 0 ? -delta : delta) << 8)
+                / (int32_t)length;
+    return (int16_t)(delta < 0 ? -q : q);
+}
+
+void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                    uint8_t vctfad, uint8_t flags)
+{
+    uint8_t period = (uint8_t)(vctfad + 1u);
+    uint8_t fadcnt;
+    int16_t dx, dy;
+    uint16_t adx, ady, length, i;
+    int32_t xx, yy, xinc, yinc;
+
+    if (period == 0) {            /* VCTFAD == 0xFF: invisible */
+        return;
+    }
+    fadcnt = period;
+
+    dx = (int16_t)(x1 - x0);
+    dy = (int16_t)(y1 - y0);
+    adx = (uint16_t)(dx < 0 ? -dx : dx);
+    ady = (uint16_t)(dy < 0 ? -dy : dy);
+    length = (ady < adx) ? adx : ady;
+    if (length == 0) {
+        return;
+    }
+
+    xinc = incre(dx, length);
+    yinc = incre(dy, length);
+
+    xx = ((int32_t)x0 << 8) | 0x80;   /* X0 + 0.5 */
+    yy = ((int32_t)y0 << 8) | 0x80;
+
+    for (i = length; i != 0; --i) {
+        --fadcnt;
+        if (fadcnt == 0) {
+            int16_t xi = (int16_t)(xx >> 8);
+            int16_t yi = (int16_t)(yy >> 8);
+            fadcnt = period;
+            if ((xi & (int16_t)0xFF00) == 0 &&
+                yi >= 0 && yi < 192) {
+                uint8_t *p = row_addr[yi] + ((uint8_t)xi >> 3);
+                uint8_t m = bit_mask[(uint8_t)xi & 7u];
+                if (flags & PLAT_LINE_INVERSE) {
+                    *p &= (uint8_t)~m;
+                } else {
+                    *p |= m;
+                }
+            }
+        }
+        xx += xinc;
+        yy += yinc;
+    }
+}
+
+void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
+{
+    uint8_t y = (uint8_t)(row << 3);
+    uint8_t k;
+    for (k = 0; k < 7u; ++k) {
+        *(row_addr[y + k] + col) = rows[k];
+    }
+}
+
+void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
+{
+    uint8_t y = (uint8_t)(row << 3);
+    uint8_t k, c;
+    for (k = 0; k < 7u; ++k) {
+        uint8_t *p = row_addr[y + k] + col;
+        for (c = 0; c < ncols; ++c) {
+            p[c] ^= 0xFFu;
+        }
+    }
+}
+
+void plat_present(void)
+{
+    /* single buffer for first light; the shadow-screen flip arrives
+     * with the Z80n assembly rasterizer */
+}
+
+/* ---- sound (stub) ------------------------------------------------------ */
+void plat_sound_play(uint8_t sound_id, uint8_t volume)
+{
+    (void)sound_id; (void)volume;
+}
+
+void plat_sound_stop(void)
+{
+}
+
+uint8_t plat_sound_playing(void)
+{
+    return 0;
+}
+
+/* ---- input ------------------------------------------------------------ */
+/* Direct 8x5 matrix scan of port 0xFE with per-key edge detection (a
+ * newly-pressed key emits once).  Only the keys the game uses map to
+ * ASCII; CAPS+0 (ZX DELETE) emits backspace. */
+static uint8_t kbd_row(uint8_t half) __z88dk_fastcall __naked
+{
+    (void)half;
+    __asm
+    ld b, l
+    ld c, 0xfe
+    in a, (c)
+    ld l, a
+    ret
+    __endasm;
+}
+
+/* half-row select bytes and their key->ASCII maps, bit 0..4 */
+static const uint8_t row_sel[8] = {
+    0xFE, 0xFD, 0xFB, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F
+};
+static const uint8_t row_ascii[8][5] = {
+    { 0,   'Z', 'X', 'C', 'V' },   /* bit0 = CAPS SHIFT */
+    { 'A', 'S', 'D', 'F', 'G' },
+    { 'Q', 'W', 'E', 'R', 'T' },
+    { 0,   0,   0,   0,   0   },   /* 1 2 3 4 5 unused */
+    { 0,   0,   0,   0,   0   },   /* 0 9 8 7 6: CAPS+0 = delete */
+    { 'P', 'O', 'I', 'U', 'Y' },
+    { 0x0D,'L', 'K', 'J', 'H' },
+    { ' ', 0,   'M', 'N', 'B' },   /* bit1 = SYMBOL SHIFT */
+};
+
+int16_t plat_poll_key(void)
+{
+    static uint8_t prev[8] = {
+        0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F
+    };
+    static uint8_t queue[8];
+    static uint8_t qhead, qtail;
+    uint8_t r, b;
+
+    if (qhead != qtail) {
+        uint8_t k = queue[qhead];
+        qhead = (uint8_t)((qhead + 1u) & 7u);
+        return (int16_t)k;
+    }
+
+    for (r = 0; r < 8u; ++r) {
+        uint8_t now = kbd_row(row_sel[r]) & 0x1Fu;
+        uint8_t edges = (uint8_t)(prev[r] & (uint8_t)~now); /* 1->0 = press */
+        prev[r] = now;
+        if (edges == 0) {
+            continue;
+        }
+        for (b = 0; b < 5u; ++b) {
+            if (edges & (uint8_t)(1u << b)) {
+                uint8_t a = row_ascii[r][b];
+                if (r == 4u && b == 0u &&
+                    (kbd_row(0xFEu) & 0x01u) == 0u) {
+                    a = 0x08;                /* CAPS+0 = delete */
+                }
+                if (a != 0u) {
+                    queue[qtail] = a;
+                    qtail = (uint8_t)((qtail + 1u) & 7u);
+                }
+            }
+        }
+    }
+
+    if (qhead != qtail) {
+        uint8_t k = queue[qhead];
+        qhead = (uint8_t)((qhead + 1u) & 7u);
+        return (int16_t)k;
+    }
+    return -1;
+}
+
+/* ---- timing ------------------------------------------------------------ */
+/* The IM2 frame ISR (isr.asm) maintains the jiffy counter with the
+ * 6/5 phase pattern; reads must be atomic against it. */
+extern volatile jiffy_t isr_jiffies;
+
+jiffy_t plat_jiffies(void)
+{
+    jiffy_t j;
+    intrinsic_di();
+    j = isr_jiffies;
+    intrinsic_ei();
+    return j;
+}
+
+void plat_yield(void)
+{
+    intrinsic_halt();             /* wait for the 50 Hz frame interrupt */
+}
+
+/* ---- persistence (esxDOS wiring is a later milestone) ------------------ */
+uint8_t plat_save_state(const void *buf, uint16_t len)
+{
+    (void)buf; (void)len;
+    return PLAT_ERR_UNSUPPORTED;
+}
+
+uint8_t plat_load_state(void *buf, uint16_t len)
+{
+    (void)buf; (void)len;
+    return PLAT_ERR_UNSUPPORTED;
+}
+
+/* ---- lifecycle ---------------------------------------------------------- */
+/* IM2 vector table: 257 bytes of 0xFD at 0xFE00, JP stub at 0xFDFD.
+ * REGISTER_SP (zpragma.inc) sits just below the stub. */
+#define IM2_TABLE ((uint8_t *)0xFE00)
+#define IM2_STUB  ((uint8_t *)0xFDFD)
+
+extern void frame_isr(void);
+
+void plat_init(void)
+{
+    uint16_t y;
+
+    ZXN_NEXTREG(REG_TURBO_MODE, 3);   /* 28 MHz (macro absent in this
+                                         z88dk's headers) */
+
+    for (y = 0; y < 192u; ++y) {
+        row_addr[y] = ULA_BITMAP
+                    + (((y & 0xC0u) << 5) | ((y & 0x07u) << 8)
+                       | ((y & 0x38u) << 2));
+    }
+
+    zx_border(INK_BLACK);
+    memset(ULA_ATTR, PAPER_BLACK | INK_WHITE, 768);
+    plat_clear();
+
+    /* the ROM IM1 handler needs IY = sysvars, which the sdcc_iy CLIB
+     * owns - so interrupts run through our own IM2 handler instead */
+    memset(IM2_TABLE, 0xFD, 257);
+    IM2_STUB[0] = 0xC3;               /* JP frame_isr */
+    IM2_STUB[1] = (uint8_t)((uint16_t)frame_isr & 0xFFu);
+    IM2_STUB[2] = (uint8_t)((uint16_t)frame_isr >> 8);
+    im2_init(IM2_TABLE);
+
+    intrinsic_ei();
+}
+
+void plat_shutdown(void)
+{
+}
