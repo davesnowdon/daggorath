@@ -14,12 +14,16 @@ SECTION code_user
 
 PUBLIC _frame_isr
 PUBLIC _isr_jiffies
+EXTERN _kbd_isr_scan
 
 _frame_isr:
     push af
     push hl
     ld   hl, (_isr_jiffies)
     inc  hl
+    ld   a, (_isr_sixty)
+    or   a
+    jr   nz, store              ; 60 Hz display: 1 frame = 1 jiffy
     ld   a, (isr_phase)
     inc  a
     cp   5
@@ -28,7 +32,20 @@ _frame_isr:
     xor  a
 no_double:
     ld   (isr_phase), a
+store:
     ld   (_isr_jiffies), hl
+
+    ; scan the keyboard matrix every frame, even while the game is
+    ; CPU-bound (kbd_isr_scan is sdcc-compiled C: save its registers;
+    ; IY belongs to the CLIB and is not touched by sdcc code)
+    push bc
+    push de
+    push ix
+    call _kbd_isr_scan
+    pop  ix
+    pop  de
+    pop  bc
+
     pop  hl
     pop  af
     ei
@@ -36,5 +53,8 @@ no_double:
 
 SECTION bss_user
 
+PUBLIC _isr_sixty
+
 _isr_jiffies:  defw 0
 isr_phase:     defb 0
+_isr_sixty:    defb 0

@@ -13,6 +13,7 @@
  * Sound    stubbed - zxnDMA DAC playback is a later milestone.
  */
 #include <arch/zxn.h>
+#include <arch/zxn/esxdos.h>
 #include <intrinsic.h>
 #include <im2.h>
 #include <string.h>
@@ -120,8 +121,15 @@ void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
 
 void plat_present(void)
 {
-    /* single buffer for first light; the shadow-screen flip arrives
-     * with the Z80n assembly rasterizer */
+    /* The draw buffer is bank 7's low 8K page mapped at 0x4000; the
+     * ULA displays bank 5.  Present = copy the bitmap back: map bank
+     * 5's low page over the ROM at 0x0000 (our IM2 handler and vector
+     * table live in top RAM, so interrupts stay safe), LDIR, restore.
+     * 6144 bytes at 28 MHz is ~4-5 ms - slow redraws become one clean
+     * flip instead of visible line-by-line painting. */
+    ZXN_NEXTREG(0x50, 10);            /* MMU0 <- bank 5 low page */
+    memcpy((void *)0x0000, ULA_BITMAP, 6144);
+    ZXN_NEXTREG(0x50, 0xFF);          /* MMU0 <- ROM */
 }
 
 /* ---- sound (stub) ------------------------------------------------------ */
@@ -170,20 +178,19 @@ static const uint8_t row_ascii[8][5] = {
     { ' ', 0,   'M', 'N', 'B' },   /* bit1 = SYMBOL SHIFT */
 };
 
-int16_t plat_poll_key(void)
+/* The scan runs from the frame ISR (isr.asm calls kbd_isr_scan), so a
+ * key pressed while the game is CPU-bound - maze generation takes
+ * whole seconds - still lands in the queue.  Single-producer (ISR) /
+ * single-consumer (plat_poll_key) byte ring: race-free without DI. */
+static volatile uint8_t kq[16];
+static volatile uint8_t kq_head, kq_tail;
+
+void kbd_isr_scan(void)
 {
     static uint8_t prev[8] = {
         0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F
     };
-    static uint8_t queue[8];
-    static uint8_t qhead, qtail;
     uint8_t r, b;
-
-    if (qhead != qtail) {
-        uint8_t k = queue[qhead];
-        qhead = (uint8_t)((qhead + 1u) & 7u);
-        return (int16_t)k;
-    }
 
     for (r = 0; r < 8u; ++r) {
         uint8_t now = kbd_row(row_sel[r]) & 0x1Fu;
@@ -200,25 +207,30 @@ int16_t plat_poll_key(void)
                     a = 0x08;                /* CAPS+0 = delete */
                 }
                 if (a != 0u) {
-                    queue[qtail] = a;
-                    qtail = (uint8_t)((qtail + 1u) & 7u);
+                    kq[kq_tail] = a;
+                    kq_tail = (uint8_t)((kq_tail + 1u) & 15u);
                 }
             }
         }
     }
+}
 
-    if (qhead != qtail) {
-        uint8_t k = queue[qhead];
-        qhead = (uint8_t)((qhead + 1u) & 7u);
-        return (int16_t)k;
+int16_t plat_poll_key(void)
+{
+    uint8_t k;
+    if (kq_head == kq_tail) {
+        return -1;
     }
-    return -1;
+    k = kq[kq_head];
+    kq_head = (uint8_t)((kq_head + 1u) & 15u);
+    return (int16_t)k;
 }
 
 /* ---- timing ------------------------------------------------------------ */
 /* The IM2 frame ISR (isr.asm) maintains the jiffy counter with the
  * 6/5 phase pattern; reads must be atomic against it. */
 extern volatile jiffy_t isr_jiffies;
+extern volatile uint8_t isr_sixty;    /* 1 = 60 Hz display: no 6/5 */
 
 jiffy_t plat_jiffies(void)
 {
@@ -234,17 +246,32 @@ void plat_yield(void)
     intrinsic_halt();             /* wait for the 50 Hz frame interrupt */
 }
 
-/* ---- persistence (esxDOS wiring is a later milestone) ------------------ */
+/* ---- persistence: one esxDOS save slot next to the .nex ---------------- */
+static const char SAVE_NAME[] = "daggorath.sav";
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    uint8_t h = esx_f_open(SAVE_NAME,
+                           ESX_MODE_W | ESX_MODE_OPEN_CREAT_TRUNC);
+    uint16_t n;
+    if (h == 0xFFu) {
+        return PLAT_ERR_IO;
+    }
+    n = (uint16_t)esx_f_write(h, (void *)buf, len);
+    esx_f_close(h);
+    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    uint8_t h = esx_f_open(SAVE_NAME, ESX_MODE_R | ESX_MODE_OPEN_EXIST);
+    uint16_t n;
+    if (h == 0xFFu) {
+        return PLAT_ERR_IO;
+    }
+    n = (uint16_t)esx_f_read(h, buf, len);
+    esx_f_close(h);
+    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
 }
 
 /* ---- lifecycle ---------------------------------------------------------- */
@@ -269,8 +296,14 @@ void plat_init(void)
     }
 
     zx_border(INK_BLACK);
+    /* attributes go to the VISIBLE screen (bank 5) before the remap;
+     * present() only ever copies the bitmap */
     memset(ULA_ATTR, PAPER_BLACK | INK_WHITE, 768);
+
+    /* from here on, 0x4000 is the DRAW buffer: bank 7's low page */
+    ZXN_NEXTREG(0x52, 14);            /* MMU2 <- bank 7 low page */
     plat_clear();
+    plat_present();                   /* blank the visible screen too */
 
     /* the ROM IM1 handler needs IY = sysvars, which the sdcc_iy CLIB
      * owns - so interrupts run through our own IM2 handler instead */
@@ -279,6 +312,11 @@ void plat_init(void)
     IM2_STUB[1] = (uint8_t)((uint16_t)frame_isr & 0xFFu);
     IM2_STUB[2] = (uint8_t)((uint16_t)frame_isr >> 8);
     im2_init(IM2_TABLE);
+
+    /* 60 Hz displays deliver one jiffy per frame; 50 Hz uses the 6/5
+     * accumulator in the ISR */
+    isr_sixty = (uint8_t)
+        ((ZXN_READ_REG(REG_PERIPHERAL_1) & RP1_RATE_60) ? 1 : 0);
 
     intrinsic_ei();
 }
