@@ -33,3 +33,4 @@ tests/z80draw/*
 !tests/z80draw/*.c
 !tests/z80draw/*.asm
 !tests/z80draw/run.sh
+tests/ab_mos

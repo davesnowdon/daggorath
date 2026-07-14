@@ -46,6 +46,17 @@ coverage:
 clean:
 	rm -f $(TESTS) ab_c ab_ref *.out *.gcda *.gcno *.c.gcov
 
+# The same harness compiled by llvm-mos and run on a simulated 6502:
+# output must be identical to the host build's (MEGA65 codegen check).
+LLVM_MOS ?= $(HOME)/retro-computing/mega65/dev/llvm-mos
+ab-mos: ab-modules
+	$(LLVM_MOS)/bin/mos-sim-clang -Os -I$(CORE) -o ab_mos \
+	    ab_modules_c.c ab_stubs.c $(CORE)/dungeon.c $(CORE)/parser.c \
+	    $(CORE)/rng.c $(CORE)/object.c $(CORE)/creature.c \
+	    $(CORE)/sched.c $(CORE)/player.c
+	$(LLVM_MOS)/bin/mos-sim ab_mos > ab_mos.out
+	diff ab_mos.out ab_c.out && echo "AB-MOS IDENTICAL"
+
 # Module-level A/B: extracted C dungeon/parser/object/creature/sched/
 # player-math vs the port's code verbatim.  Both dump CRC-tagged state;
 # outputs must be identical.

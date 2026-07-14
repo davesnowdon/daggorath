@@ -3,6 +3,8 @@
  * ab_stubs.c; player/sched/object/creature/dungeon/parser/rng are the
  * real core modules. */
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include "dungeon.h"
 #include "parser.h"
 #include "game.h"
@@ -13,16 +15,16 @@
 #include "sched.h"
 #include "viewer.h"
 
-static unsigned crc = 0xFFFFFFFFu;
-static void h8(unsigned v)
+static uint32_t crc = 0xFFFFFFFFul;
+static void h8(uint8_t v)
 {
-    unsigned i;
+    uint8_t i;
 #ifdef AB_TRACE   /* build both sides -DAB_TRACE to diff raw byte streams */
-    printf("%02X\n", v & 0xFF);
+    printf("%02X\n", (unsigned)v);
 #endif
-    crc ^= v & 0xFF;
+    crc ^= v;
     for (i = 0; i < 8; ++i)
-        crc = (crc >> 1) ^ (0xEDB88320u & (0u - (crc & 1u)));
+        crc = (crc >> 1) ^ (0xEDB88320ul & (0ul - (crc & 1ul)));
 }
 
 int main(void)
@@ -52,10 +54,10 @@ int main(void)
         player.PROW = (dodBYTE)(r ? 5 : 5); player.PCOL = 7;
         for (i = 0; i < 4; ++i) h8(dungeon_TryMove((dodBYTE)i));
     }
-    printf("DUNGEON %08X\n", crc);
+    printf("DUNGEON %08" PRIX32 "\n", crc);
 
     /* parser: match every CMDTAB/DIRTAB word (full + prefixes) */
-    crc = 0xFFFFFFFFu;
+    crc = 0xFFFFFFFFul;
     {
         const dodBYTE *tabs[2] = { CMDTAB, DIRTAB };
         int t;
@@ -115,10 +117,10 @@ int main(void)
             h8((unsigned)(parser_PARHND() & 0xFF));
         }
     }
-    printf("PARSER  %08X\n", crc);
+    printf("PARSER  %08" PRIX32 "\n", crc);
 
     /* OBJECT: CreateAll table, FNDOBJ/OFIND traversal, seeded OBIRTHs */
-    crc = 0xFFFFFFFFu;
+    crc = 0xFFFFFFFFul;
     {
         int k;
         game.ShieldFix = 0;
@@ -193,12 +195,12 @@ int main(void)
             h8(o->P_OCMGO); h8(o->P_OCPHO);
         }
     }
-    printf("OBJECT  %08X\n", crc);
+    printf("OBJECT  %08" PRIX32 "\n", crc);
 
     /* CREATUR: NEWLVL per level; CCBs, object links, scheduler TCBs.
      * Our frequencies are already jiffies: CRC them raw (the ref dumps
      * the port's milliseconds as (ms*6)/100 = jiffies). */
-    crc = 0xFFFFFFFFu;
+    crc = 0xFFFFFFFFul;
     {
         game.RandomMaze = 0;
         game.IsDemo = 0;
@@ -240,10 +242,10 @@ int main(void)
         }
         for (i = 0; i < 60; ++i) h8(creature.CMXLND[i]);
     }
-    printf("CREATUR %08X\n", crc);
+    printf("CREATUR %08" PRIX32 "\n", crc);
 
     /* PLRMATH: DAMAGE over seeded pseudo-random tuples + HEARTR sweep */
-    crc = 0xFFFFFFFFu;
+    crc = 0xFFFFFFFFul;
     {
         dodSHORT DD = 0;
         int k, pw, dm;
@@ -271,6 +273,6 @@ int main(void)
             }
         }
     }
-    printf("PLRMATH %08X\n", crc);
+    printf("PLRMATH %08" PRIX32 "\n", crc);
     return 0;
 }
