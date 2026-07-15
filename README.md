@@ -20,10 +20,10 @@ dot-period fades, and the 60 Hz jiffy scheduler. Backends implement 13
 |---|---|
 | `core/` | portable game core (C99, no OS/float/heap; strict `-Werror -pedantic`) |
 | `desktop/` | SDL2 reference backend + verification tooling (`--pattern`, `--record/--replay`, `--turbo`, `--headless`, `--screenshot`, `--dump-state`) |
-| `spectrum-next/` | z88dk (zsdcc) + Z80n backend → `daggorath.nex` + `daggorath.sfx` — **complete** (28 MHz, Z80n asm rasterizer, zxnDMA→Covox sound, IM2 jiffies, esxDOS saves) |
+| `spectrum-next/` | z88dk (zsdcc) + Z80n backend → `daggorath.nex` + `daggorath.sfx` — **complete** (28 MHz, Z80n asm rasterizer, zxnDMA→Covox sound w/ CPU-scaled distance volume, IM2 jiffies, esxDOS saves) |
 | `mega65/` | llvm-mos backend → `daggorath.prg`/`.d81` + `DAGGOR65.SFX`/`.SAV` — **complete** (40 MHz, VIC-IV bitmap, Audio DMA w/ distance volume, hyppo saves; `m65mon.py` drives xemu) |
 | `tools/` | table generators (dual-source verified), golden generators, wav2raw, gen_sfxbin, make_d81 |
-| `tests/` | unit tests, module A/B, scenario goldens, coverage, `ab-mos`, fixed-scene diffs (`next-scene/`, `mega65-scene/`) |
+| `tests/` | unit tests, module A/B, scenario goldens, coverage, `ab-mos`, z80 asm identity tests (`z80draw/`, `z80scale/`), fixed-scene diffs (`next-scene/`, `mega65-scene/`) |
 | `assets/` | PCM sound effects converted from the port's WAVs |
 | `docs/` | extraction conventions, wait-site audit, A/B protocol, platform notes |
 | `release/` | player-facing READMEs + command crib for `make release` |

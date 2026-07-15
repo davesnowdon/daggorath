@@ -7,7 +7,8 @@ export PATH   := $(Z88DK)/bin:$(PATH)
 
 CORE     := ../core
 CORE_SRC := $(wildcard $(CORE)/*.c)
-SRC      := main.c plat_next.c sound_next.c isr.asm draw_z80n.asm $(CORE_SRC)
+SRC      := main.c plat_next.c sound_next.c isr.asm draw_z80n.asm \
+            snd_scale.asm $(CORE_SRC)
 
 # -SO3 + max-allocs is the z88dk-recommended aggressive setting; drop to
 # plain -SO2 if build time hurts during iteration.
@@ -29,7 +30,8 @@ clean:
 	rm -f daggorath.nex daggorath *.o
 
 # smartload into ZEsarUX (window opens; close it to stop)
-EMU := $(HOME)/retro-computing/spectrum-next/emulators/ZEsarUX/zesarux/zesarux
+EMU := $(HOME)/retro-computing/spectrum-next/emulators/ZEsarUX/zesarux/src/zesarux
 run: daggorath.nex
-	$(EMU) --machine tbblue --realvideo --quickexit-fileselector \
+	$(EMU) --machine tbblue --realvideo \
+	       --enable-esxdos-handler --esxdos-root-dir $(CURDIR) \
 	       daggorath.nex

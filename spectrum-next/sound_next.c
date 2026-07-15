@@ -16,8 +16,19 @@
  *   $CD $DF $FF                 WR4 burst mode, dest port 0xFFDF
  *   $82                         WR5 stop on end of block
  *   $CF $B3 $87                 WR6 load, force ready, enable
- * prescalar = 875000 / 11025 = 79.  Volume is not scalable on the
- * Covox: SFX play at fixed level for now (documented limitation).
+ * prescalar = 875000 / 11025 = 79.
+ *
+ * Covox volume tiers: the DAC has no level control, so volume is done
+ * by scaling the PCM bytes on the CPU.  plat_sound_play quantizes the
+ * core's 0..255 volume to 9 tiers of the desktop reference's
+ * volume/255 midline gain: tier 8 (volume >= 224 - every full-volume
+ * play and creature range 1) streams the original sample untouched;
+ * tiers 0-7 rebuild a 256-byte lookup table (gain tier*32/256) and
+ * copy the sample through snd_scale_chunk (snd_scale.asm) into 3
+ * bounce pages right after the blob, cached by (id, tier) so restarts
+ * and repeats at the same range cost nothing.  The 8 discrete creature
+ * volumes 255,223,...,31 (core/sound.c) map one tier each, and the
+ * fade buzz ramp (0,16,...,240,255) crosses a tier every other step.
  */
 #include <arch/zxn.h>
 #include <arch/zxn/esxdos.h>
@@ -31,8 +42,24 @@
 #define SFX_FILE     "daggorath.sfx"
 #define DMA_PRESCALAR 79u         /* 875000 / 11025 */
 #define MMU1_WINDOW  ((uint8_t *)0x2000)
+#define MMU0_WINDOW  ((uint8_t *)0x0000)
+
+/* volume-scaled bounce copy: 3 pages right after the blob (pages
+ * 57-59 with the current blob; still well inside the standard 1MB
+ * Next).  24576 bytes >= the largest attenuable sample (buzz, 22050;
+ * kaboom/bang/hearts only ever play at full volume). */
+#define SFX_PAGES    ((SFX_BLOB_LEN + 8191u) / 8192u)
+#define BOUNCE_PAGE0 ((uint8_t)(SFX_PAGE0 + SFX_PAGES))
+#define BOUNCE_PAGES 3u
+#define BOUNCE_LEN   (BOUNCE_PAGES * 8192u)
+#define SND_LUT      ((uint8_t *)0x5B00) /* keep in sync with snd_scale.asm */
+
+extern void snd_scale_chunk(const uint8_t *src, uint8_t *dst, uint16_t len);
 
 static uint8_t snd_loaded;        /* blob present in RAM */
+static uint8_t bounce_id = 0xFFu; /* (sound, tier) cached in the bounce */
+static uint8_t bounce_tier = 0xFFu;
+static uint8_t lut_tier = 0xFFu;  /* tier the LUT is currently built for */
 static volatile uint8_t snd_active;
 static uint8_t cur_page;          /* page of the chunk now playing */
 static uint16_t cur_inpage;       /* offset of NEXT chunk in its page */
@@ -110,20 +137,94 @@ void snd_isr_tick(void)
     }
 }
 
+/* Rebuild the volume LUT for a tier: out = 128 + (in-128)*m/256 with
+ * m = tier*32.  The desktop reference scales by volume/255; tier t
+ * covers volumes t*32-1 .. t*32+30, so this lands within half a tier
+ * of every volume in the band and hits the 8 creature volumes
+ * (255,223,...,31 = tier*32-1) essentially exactly.  The table lives
+ * in the always-mapped free tail of the draw page (snd_scale.asm). */
+static void build_lut(uint8_t tier)
+{
+    uint16_t i;
+    int16_t m = (int16_t)((uint16_t)tier << 5);
+
+    if (lut_tier == tier) {
+        return;
+    }
+    for (i = 0; i != 256u; ++i) {
+        SND_LUT[i] = (uint8_t)(128 + ((((int16_t)i - 128) * m) >> 8));
+    }
+    lut_tier = tier;
+}
+
+/* Scale a whole sample through the LUT into the bounce pages: source
+ * pages stream through the MMU1 window, bounce pages through the MMU0
+ * window (the same temporary slot-0 trick plat_present uses; no
+ * instruction fetch happens below 0x4000, so divMMC never automaps).
+ * Interrupt-safe: the frame ISR only remaps MMU1 while a sound is
+ * active, and the caller has already stopped playback. */
+static void scale_into_bounce(uint8_t sound_id)
+{
+    uint32_t off = SFX_INDEX[sound_id].off;
+    uint32_t left = SFX_INDEX[sound_id].len;
+    uint8_t spage = (uint8_t)(SFX_PAGE0 + (off >> 13));
+    uint16_t soff = (uint16_t)(off & 0x1FFFu);
+    uint8_t dpage = BOUNCE_PAGE0;
+    uint16_t doff = 0;
+
+    while (left != 0) {
+        uint16_t n = (uint16_t)(8192u - soff);
+        uint16_t dleft = (uint16_t)(8192u - doff);
+        if (n > dleft) {
+            n = dleft;
+        }
+        if ((uint32_t)n > left) {
+            n = (uint16_t)left;
+        }
+        ZXN_NEXTREGA(0x51, spage);    /* MMU1 <- source page */
+        ZXN_NEXTREGA(0x50, dpage);    /* MMU0 <- bounce page */
+        snd_scale_chunk(MMU1_WINDOW + soff, MMU0_WINDOW + doff, n);
+        left -= n;
+        soff = (uint16_t)(soff + n);
+        if (soff == 8192u) {
+            soff = 0;
+            ++spage;
+        }
+        doff = (uint16_t)(doff + n);
+        if (doff == 8192u) {
+            doff = 0;
+            ++dpage;
+        }
+    }
+    ZXN_NEXTREG(0x50, 0xFF);          /* MMU0 back to ROM */
+}
+
 void plat_sound_play(uint8_t sound_id, uint8_t volume)
 {
-    uint32_t off;
+    uint8_t tier;
 
-    (void)volume;                 /* Covox has no level control */
     if (!snd_loaded || sound_id >= SND_COUNT) {
         return;
     }
     snd_active = 0;               /* fence the ISR before re-arming */
     dma_stop();
 
-    off = SFX_INDEX[sound_id].off;
-    cur_page = (uint8_t)(SFX_PAGE0 + (off >> 13));
-    cur_inpage = (uint16_t)(off & 0x1FFFu);
+    /* quantize to a volume tier; see the header block */
+    tier = (uint8_t)(((uint16_t)volume + 1u) >> 5);
+    if (tier >= 8u || SFX_INDEX[sound_id].len > BOUNCE_LEN) {
+        uint32_t off = SFX_INDEX[sound_id].off;
+        cur_page = (uint8_t)(SFX_PAGE0 + (off >> 13));
+        cur_inpage = (uint16_t)(off & 0x1FFFu);
+    } else {
+        if (bounce_id != sound_id || bounce_tier != tier) {
+            build_lut(tier);
+            scale_into_bounce(sound_id);
+            bounce_id = sound_id;
+            bounce_tier = tier;
+        }
+        cur_page = BOUNCE_PAGE0;
+        cur_inpage = 0;
+    }
     cur_remaining = SFX_INDEX[sound_id].len;
     dma_arm();
     snd_active = 1;

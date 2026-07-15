@@ -19,8 +19,10 @@ Saves
   restores it.
 
 Notes
-  Audio is played through the Covox/Next DAC by the zxnDMA - no CPU
-  cost, but no volume control either, so creature sounds don't fade
-  with distance on this platform.  Rendering is pixel-identical to
+  Audio is played through the Covox/Next DAC by the zxnDMA.  The DAC
+  has no level control, so distance volume (creature sounds fading
+  with range, and the title buzz ramp) is done by scaling the sample
+  bytes on the CPU - listen for monsters getting louder as they
+  close in, just like on the CoCo.  Rendering is pixel-identical to
   the 1982 original (the line rasterizer is an exact port of the
   cartridge's VECTOR.ASM, dot-fades included).

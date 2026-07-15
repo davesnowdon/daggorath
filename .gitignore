@@ -33,6 +33,10 @@ tests/z80draw/*
 !tests/z80draw/*.c
 !tests/z80draw/*.asm
 !tests/z80draw/run.sh
+tests/z80scale/*
+!tests/z80scale/*.c
+!tests/z80scale/*.asm
+!tests/z80scale/run.sh
 tests/ab_mos
 mega65/daggorath.prg
 mega65/daggorath.prg.elf

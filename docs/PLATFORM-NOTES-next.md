@@ -49,8 +49,7 @@ in 8K MMU pages, not the main map.
    streamed to the Covox DAC (0xFFDF) by the zxnDMA (prescalar 79 =
    875000/11025; em00k's register program).  Multi-page samples are
    re-armed per chunk from the frame ISR through an MMU slot-1 window.
-   Verified in ZEsarUX via `--aofile` capture.  LIMITATION: the Covox
-   has no level control, so creature-distance volume is flat for now.
+   Verified in ZEsarUX via `--aofile` capture.
 2. **Double buffering**: 0x4000 maps bank 7's low page (draw buffer);
    present copies the bitmap to bank 5 through a temporary MMU slot-0
    mapping.
@@ -75,13 +74,53 @@ in 8K MMU pages, not the main map.
   daggorath.sfx + README/CONTROLS to
   ~/retro-computing/spectrum-next/games/Daggorath/.
 
+## Covox volume tiers (post-Phase-4)
+
+The Covox has no level control, so volume is CPU-scaled:
+plat_sound_play quantizes the core's 0..255 volume to 9 tiers of the
+desktop's volume/255 midline gain.  Tier 8 (>= 224: all full-volume
+plays and creature range 1) streams the original sample; tiers 0-7
+rebuild a 256-byte LUT (gain tier*32/256, at 0x5B00 in the draw-page
+tail after the rasterizer's tables) and copy the sample through
+snd_scale.asm (69 T/byte; worst case = the 22050-byte buzz, ~54 ms at
+28 MHz) into 3 bounce pages after the blob, cached by (id, tier) so
+the fade's 300 ms buzz re-issues and repeats at the same range are
+free.  The 8 creature volumes (255,223,...,31 = tier*32-1) map one
+tier each; the fade ramp (step*16) crosses a tier every other step.
+Scaling maps source pages at MMU1 and bounce pages at MMU0 - safe
+because the frame ISR only touches MMU1 while a sound is active and
+playback is stopped first (and no fetch happens below 0x4000, so
+divMMC never automaps).
+
+Verified three ways:
+1. tests/z80scale/run.sh - the REAL snd_scale.asm + the zsdcc-compiled
+   LUT builder under z88dk-ticks vs a gcc reference: Z80SCALE
+   IDENTICAL (all 8 tiers, odd offsets, varied lengths, len==0 no-op).
+2. ZEsarUX --aofile before/after: old build plays the title buzz flat
+   at full level; new build ramps 0 -> full in tier steps and mirrors
+   back down on the fade-out, kaboom level unchanged (tier-8 path is
+   byte-identical to the old code).
+3. make check green + fixed scene re-verified PIXEL-IDENTICAL on the
+   new binary.
+
+Two ZEsarUX observations from that work (both pre-existing, confirmed
+identical on the Phase-2 binary):
+- The emulator renders the DMA-paced Covox stream as short ~75 ms
+  bursts per 8K chunk (the zxnDMA prescalar does not pace its audio
+  mixer), so aofile captures show burst envelopes rather than
+  continuous tone.  Levels and sequencing are still faithful; real
+  hardware paces by the prescalar.
+- core_wait_jiffies phases stretch (the 2.5 s PREPARE hold measures
+  ~30 s wall) even though the jiffy counter ticks at a verified
+  59.9/s; scheduler-driven gameplay paces correctly.  Not diagnosed;
+  worth timing on real hardware.
+
 ## Still open
 
 - Real-hardware SD boot (Dave's Next: both files in one SD folder,
   launch the .nex from the Browser - see release/README-next.txt).
-- Covox volume scaling (pre-scaled sample tiers, or a CPU scale into
-  a bounce page at play time) - the one authenticity gap vs the
-  MEGA65's true distance volume.
+- The stretched core_wait_jiffies observation above (emulation only
+  so far; check the PREPARE hold on real hardware).
 - CSpect second opinion (optional).
 
 ## Build & run

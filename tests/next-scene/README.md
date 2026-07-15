@@ -16,6 +16,15 @@ Procedure (semi-automated; needs ZEsarUX + the built .nex):
    cells (status row cols 15-16: their small/large state depends on
    heartbeat phase, not rendering).
 
+TIMING CAVEAT: "wait for the prompt" must be event-driven, not a
+fixed sleep - the PREPARE hold stretches to ~30 wall seconds in
+ZEsarUX (see the core_wait_jiffies observation in
+docs/PLATFORM-NOTES-next.md).  Poll the dump against the golden until
+it converges; a too-early dump differs only in the leftover
+"PREPARE!" text cells.
+
 Result 2026-07-14 (commit e78e64e): 0 differing bytes -
 FIXED-SCENE PIXEL-IDENTICAL.  Chain: Next ULA = desktop fb =
 core/draw_ref.c = VECTOR.ASM.
+Re-verified 2026-07-15 on the Covox-volume-tier build: 0 differing
+bytes (poll-until-converged, ~44 s after the fade-abort ENTER).
