@@ -7,16 +7,17 @@ export PATH   := $(Z88DK)/bin:$(PATH)
 
 CORE     := ../core
 CORE_SRC := $(wildcard $(CORE)/*.c)
-# Phase 1: video first light, all C (nick/isr/draw/rng asm land in later
-# phases).  The C line rasterizer in plat_ep.c is the reference until
-# draw_ep.asm (Phase 3) supersedes it.
-SRC      := main.c plat_ep.c $(CORE_SRC)
+# Phase 2: IM1 takeover (isr_ep.asm = jiffies + keyboard) and the RANDOM.ASM
+# RNG in Z80 (rng_z80.asm, -DDOD_RNG_ASM - mandatory at 4 MHz; compiles out
+# the C rng_RANDOM).  The C line rasterizer in plat_ep.c is still the
+# reference until draw_ep.asm (Phase 3) supersedes it.
+SRC      := main.c plat_ep.c isr_ep.asm rng_z80.asm $(CORE_SRC)
 
 # Bare crt0: the loader (not EXOS) places the 3 game segments and kills EXOS,
 # so the stock EXOS-integrated crt0 (opens VIDEO/KEYBOARD, forces FFh into
 # page 2) must NOT run.  bare_crt0.asm keeps only SP/BSS/atexit init + call main.
 ZCCFLAGS := +enterprise -compiler=sdcc -subtype=com -crt0=$(CURDIR)/bare_crt0 \
-            -SO3 --max-allocs-per-node100000 --opt-code-size \
+            -SO3 --max-allocs-per-node100000 --opt-code-size -DDOD_RNG_ASM \
             -I$(CORE) -pragma-include:zpragma_ep.inc
 
 # 8.3-safe name (FAT12 base is max 8 chars): DAGGORAT.COM on disk.

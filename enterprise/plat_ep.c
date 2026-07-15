@@ -7,9 +7,11 @@
  *          CoCo-authentic).  The C line rasterizer here must match
  *          core/draw_ref.c pixel for pixel; draw_ep.asm replaces it in
  *          Phase 3.
- * Input    stubbed for first light (Phase 2 adds the port-B5h matrix scan).
- * Timing   stubbed jiffy counter ticking on plat_yield (Phase 2 takes over
- *          IM1 with the tone0 interrupt).
+ * Input    port-B5h keyboard matrix, scanned from the frame ISR with edge
+ *          detection into a lock-free ring (plat_poll_key drains it).
+ * Timing   IM1 takeover.  The Nick video interrupt (50 Hz PAL) drives a
+ *          +1,+1,+1,+1,+2 jiffy accumulator (isr_ep.asm) = true 60 Hz;
+ *          plat_yield HALTs to the frame.
  * Sound    stubbed (Phase 4 = Dave DAC PCM).
  *
  * Segment numbers are DISCOVERED at init (Nick sees only segments
@@ -172,16 +174,12 @@ void plat_present(void)
     LPT_LD1[0] = (uint8_t)a;             /* LD1 lo */
     LPT_LD1[1] = (uint8_t)(a >> 8);      /* LD1 hi */
 
-    __asm
-        ppw0$:                           ; wait for frame-sync flag to clear
-            in   a, (0xb4)
-            and  #0x10
-            jr   nz, ppw0$
-        ppw1$:                           ; then the rising edge = new frame live
-            in   a, (0xb4)
-            and  #0x10
-            jr   z, ppw1$
-    __endasm;
+    /* Nick re-reads the visible record's LD1 at the top of every frame, so
+     * writing the LPT bytes mid-frame can't tear the current frame.  HALT to
+     * the next frame interrupt (fired near end-of-visible, before the top
+     * border + reload) so the flip is live before we hand the old front
+     * buffer back as the draw target and the core clears it. */
+    __asm halt __endasm;
 
     draw_base = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
     ep_rebuild_row_addr();
@@ -198,39 +196,106 @@ void plat_sound_stop(void) { }
 
 uint8_t plat_sound_playing(void) { return 0; }
 
-/* ---- input: stubbed for Phase 1 (Phase 2 = port-B5h matrix scan) ------ */
-int16_t plat_poll_key(void)
+/* ---- input: port-B5h keyboard matrix scan ----------------------------- */
+/* EP keyboard: OUT (B5h),row selects one of 10 rows (Dave latches row =
+ * value & 0x0F), then IN A,(B5h) reads that row's 8 key bits with a CLEARED
+ * bit = key pressed (active low).  We map only the keys Daggorath uses
+ * (A-Z, space, enter, delete) to raw ASCII; the core's ascii_filter drops
+ * everything else.  Matrix verified against ep128emu's ep_keys.cfg
+ * (vault note 01 - Hardware Overview). */
+static uint8_t kbd_row(uint8_t row) __z88dk_fastcall __naked
 {
-    return -1;
+    (void)row;                       /* arg arrives in L (fastcall) */
+    __asm
+        ld   a, l
+        out  (0xb5), a              ; select keyboard row
+        in   a, (0xb5)              ; read its 8 key bits (active low)
+        ld   l, a                   ; return in L
+        ret
+    __endasm;
 }
 
-/* ---- timing: VSYNC-polled jiffies for first light --------------------- */
-/* The core paces itself on jiffies.  Interrupts are OFF (we own the machine
- * bare-metal), so instead of an ISR we poll the Nick frame-sync flag
- * (port B4h bit 4) and advance one jiffy per frame -> ~50 Hz PAL pacing.
- * That is a hair slower than the core's 60 Hz model but STABLE, so the
- * attract/title animation renders at a sane rate instead of racing.
- * Phase 2 replaces this with the tone0 IM1 jiffy accumulator (true 60 Hz). */
-static jiffy_t stub_jiffies;
+/* row_ascii[row][bit] - the ASCII a cleared bit emits (0 = key we ignore).
+ * Columns are bit 0 (b0) .. bit 7 (b7); see the vault matrix table. */
+static const uint8_t row_ascii[10][8] = {
+    /* b0    b1    b2    b3    b4    b5    b6    b7  */
+    { 'N',  0,   'B',  'C',  'V',  'X',  'Z',  0   }, /* 0: LSh Z X V C B \ N */
+    { 'H',  0,   'G',  'D',  'F',  'S',  'A',  0   }, /* 1: Ctl A S F D G Lk H */
+    { 'U', 'Q',  'Y',  'R',  'T',  'E',  'W',  0   }, /* 2: Tab W E T R Y Q U */
+    { 0,    0,    0,    0,    0,    0,    0,    0   }, /* 3: Esc 2 3 5 4 6 1 7 */
+    { 0,    0,    0,    0,    0,    0,    0,    0   }, /* 4: function keys     */
+    { 0,    0,    0,    0,    0,    0,    0,    0   }, /* 5: Ers ^ 0 - 9 8     */
+    { 'J',  0,   'K',   0,   'L',   0,    0,    0   }, /* 6: ] : L ; K J       */
+    { 0,    0,    0,    0,    0,    0,   0x0D,  0   }, /* 7: Alt Ent ... Stop  */
+    { 'M', 0x08,  0,    0,    0,    0,   0x20,  0   }, /* 8: Ins Sp RSh . / , Del M */
+    { 'I',  0,   'O',   0,   'P',   0,    0,    0   }, /* 9: [ P @ O I         */
+};
+
+/* The scan runs from the frame ISR (isr_ep.asm calls kbd_isr_scan), so a
+ * key pressed while the game is CPU-bound - maze generation takes whole
+ * seconds - still lands in the queue.  Single-producer (ISR) / single-
+ * consumer (plat_poll_key) byte ring: race-free without DI. */
+static volatile uint8_t kq[16];
+static volatile uint8_t kq_head, kq_tail;
+
+void kbd_isr_scan(void)
+{
+    static uint8_t prev[10] = {
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+    };
+    uint8_t r, b;
+
+    for (r = 0; r < 10u; ++r) {
+        uint8_t now = kbd_row(r);
+        uint8_t edges = (uint8_t)(prev[r] & (uint8_t)~now); /* 1->0 = press */
+        prev[r] = now;
+        if (edges == 0) {
+            continue;
+        }
+        for (b = 0; b < 8u; ++b) {
+            if (edges & (uint8_t)(1u << b)) {
+                uint8_t a = row_ascii[r][b];
+                if (a != 0u) {
+                    kq[kq_tail] = a;
+                    kq_tail = (uint8_t)((kq_tail + 1u) & 15u);
+                }
+            }
+        }
+    }
+}
+
+int16_t plat_poll_key(void)
+{
+    uint8_t k;
+    if (kq_head == kq_tail) {
+        return -1;
+    }
+    k = kq[kq_head];
+    kq_head = (uint8_t)((kq_head + 1u) & 15u);
+    return (int16_t)k;
+}
+
+/* ---- timing: ISR-driven jiffies (IM1, Nick video interrupt) ----------- */
+/* isr_ep.asm maintains isr_jiffies at 60 Hz (a +1,+1,+1,+1,+2 accumulator
+ * over the 50 Hz PAL frame interrupt).  A 16-bit read is not atomic against
+ * the ISR, so DI around it. */
+extern volatile jiffy_t isr_jiffies;
 
 jiffy_t plat_jiffies(void)
 {
-    return stub_jiffies;
+    jiffy_t j;
+    __asm di __endasm;
+    j = isr_jiffies;
+    __asm ei __endasm;
+    return j;
 }
 
+/* HALT parks the CPU until the next (only-enabled) interrupt = the Nick
+ * video frame interrupt, so the game paces to the 50 Hz frame while the ISR
+ * keeps wall-clock jiffies advancing at 60 Hz independently. */
 void plat_yield(void)
 {
-    __asm
-    ywl0$:                          ; wait for frame-sync flag to be low
-        in   a, (0xb4)
-        and  #0x10
-        jr   nz, ywl0$
-    ywl1$:                          ; then wait for the rising edge
-        in   a, (0xb4)
-        and  #0x10
-        jr   z, ywl1$
-    __endasm;
-    ++stub_jiffies;
+    __asm halt __endasm;
 }
 
 /* ---- persistence: stubbed for Phase 1 (Phase 5 = EXOS channel I/O) ----- */
@@ -335,6 +400,28 @@ static void ep_build_lpt(void)
     __endasm;
 }
 
+/* Install the IM1 frame ISR and arm the Nick video interrupt.  EXOS is dead
+ * (the loader killed it and paged its system segment out), so 0038h is now
+ * free RAM in our program segment (P0 = FCh, whose 00-FF the loader never
+ * wrote - the game image loads at 0100h): patch a JP _frame_isr there, set
+ * IM 1, enable + reset int_1 via Dave port B4h, then EI.  Called last in
+ * plat_init, after the framebuffers and LPT are live. */
+extern void frame_isr(void);           /* isr_ep.asm: _frame_isr */
+
+static void ep_isr_start(void)
+{
+    uint16_t v = (uint16_t)&frame_isr;
+    *((uint8_t *)0x0038) = 0xC3u;                  /* JP nn */
+    *((uint8_t *)0x0039) = (uint8_t)v;             /* lo */
+    *((uint8_t *)0x003A) = (uint8_t)(v >> 8);      /* hi */
+    __asm
+        im   1
+        ld   a, #0x30
+        out  (0xb4), a           ; enable int_1 (Nick video), reset its latch
+        ei
+    __endasm;
+}
+
 void plat_init(void)
 {
     ep_hw_takeover();                  /* DI, fast mode, page VID_SEG @ P3 */
@@ -350,6 +437,8 @@ void plat_init(void)
 
     ep_build_lpt();
     ep_nick_lpt();                      /* Nick now scans our LPT (showing FB0) */
+
+    ep_isr_start();                     /* IM1: 60 Hz jiffies + keyboard; EI */
 }
 
 void plat_shutdown(void)
