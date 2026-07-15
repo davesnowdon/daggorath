@@ -103,24 +103,31 @@ Verified three ways:
 3. make check green + fixed scene re-verified PIXEL-IDENTICAL on the
    new binary.
 
-Two ZEsarUX observations from that work (both pre-existing, confirmed
+Two observations from that work (both pre-existing, confirmed
 identical on the Phase-2 binary):
-- The emulator renders the DMA-paced Covox stream as short ~75 ms
-  bursts per 8K chunk (the zxnDMA prescalar does not pace its audio
-  mixer), so aofile captures show burst envelopes rather than
-  continuous tone.  Levels and sequencing are still faithful; real
-  hardware paces by the prescalar.
-- core_wait_jiffies phases stretch (the 2.5 s PREPARE hold measures
-  ~30 s wall) even though the jiffy counter ticks at a verified
-  59.9/s; scheduler-driven gameplay paces correctly.  Not diagnosed;
-  worth timing on real hardware.
+- ZEsarUX renders the DMA-paced Covox stream as short ~75 ms bursts
+  per 8K chunk (the zxnDMA prescalar does not pace its audio mixer),
+  so aofile captures show burst envelopes rather than continuous
+  tone.  Levels and sequencing are still faithful; real hardware
+  paces by the prescalar.
+- **The "PREPARE!" pause is ~30 s of level-generation CPU time**, not
+  a timing bug: creature_NEWLVL -> dungeon_DGNGEN spins rng_RANDOM,
+  and the C rng_RANDOM does 8x8 per-bit passes through lsl()/rol()
+  FUNCTION CALLS (~90 calls per random byte under zsdcc - PC-sampled
+  during the pause: rng_RANDOM/_lsl/_rol dominate; the jiffy counter
+  ticks a verified 59.9/s throughout, and core_wait_jiffies itself is
+  correct).  The original CoCo also pauses famously long here, so the
+  feel is authentic-ish, but a Z80 asm rng_RANDOM (like draw_z80n)
+  would cut it to a few seconds - the top optimization candidate if
+  it bothers anyone.  Fade buzz steps run ~1.3x nominal for related
+  reasons (draw + pump cost on top of each 18-jiffy wait).
 
 ## Still open
 
 - Real-hardware SD boot (Dave's Next: both files in one SD folder,
   launch the .nex from the Browser - see release/README-next.txt).
-- The stretched core_wait_jiffies observation above (emulation only
-  so far; check the PREPARE hold on real hardware).
+- Optional speed-up of the level-generation pause (asm rng_RANDOM;
+  see the observation above).
 - CSpect second opinion (optional).
 
 ## Build & run

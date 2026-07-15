@@ -79,6 +79,26 @@ content (rings/flasks/scrolls carried by deep-level creatures) plus
 defensive branches.  gcovr does not install on this host, so
 `tests/run-coverage.sh` aggregates plain gcov output.
 
+## Backend verification layers (Phases 2-4)
+
+The layers above freeze the core; each backend then proves ITS pieces
+against that frozen reference (details and results live in the two
+platform-notes docs):
+
+- **ab-mos** (`tests/Makefile`): the whole module A/B harness compiled
+  by llvm-mos and run on a simulated 6502 - output must be identical
+  to the host build's (MEGA65 codegen proven before the backend).
+- **z80draw** (`tests/z80draw/run.sh`): the Next's Z80n asm rasterizer
+  vs the normative core/draw_ref.c over a deterministic corpus under
+  z88dk-ticks - byte-identical framebuffers.
+- **z80scale** (`tests/z80scale/run.sh`): the Next's Covox
+  volume-scaling asm + its zsdcc-compiled LUT builder vs a gcc
+  reference under z88dk-ticks - byte-identical output for all tiers.
+- **Fixed-scene diffs** (`tests/next-scene/`, `tests/mega65-scene/`):
+  the same deterministic game start rendered on each emulated target,
+  compared byte-for-byte against the desktop shim's framebuffer
+  (0 differing bytes on both).
+
 ## Bugs the protocol has caught
 
 - `viewer_fade.c`: the death/victory hold-frame loop never ticked the

@@ -39,12 +39,35 @@ store:
     ; scan the keyboard matrix every frame, even while the game is
     ; CPU-bound (kbd_isr_scan is sdcc-compiled C: save its registers;
     ; IY belongs to the CLIB and is not touched by sdcc code), then
-    ; feed the zxnDMA sample stream its next chunk if one is due
+    ; feed the zxnDMA sample stream its next chunk if one is due.
+    ;
+    ; The SHADOW set is saved too: mainline asm may hold live values in
+    ; the alternate registers (snd_scale.asm's Covox scaling loop), and
+    ; although zsdcc 4.5.0 never emits exx/ex af,af' (verified against
+    ; the generated code for both C ISR callees), that is a compiler-
+    ; version invariant nobody enforces.  ~130 T-states/frame buys an
+    ; ISR that cannot corrupt anyone's alternate registers, ever.
     push bc
     push de
     push ix
+    exx
+    ex   af, af'
+    push af
+    push bc
+    push de
+    push hl
+    exx
+    ex   af, af'
     call _kbd_isr_scan
     call _snd_isr_tick
+    exx
+    ex   af, af'
+    pop  hl
+    pop  de
+    pop  bc
+    pop  af
+    exx
+    ex   af, af'
     pop  ix
     pop  de
     pop  bc

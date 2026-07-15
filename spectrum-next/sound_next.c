@@ -64,7 +64,6 @@ static volatile uint8_t snd_active;
 static uint8_t cur_page;          /* page of the chunk now playing */
 static uint16_t cur_inpage;       /* offset of NEXT chunk in its page */
 static uint32_t cur_remaining;    /* bytes left after current chunk */
-static uint16_t cur_chunklen;
 
 static void dma_out(uint8_t b)
 {
@@ -85,7 +84,6 @@ static void dma_arm(void)
     if ((uint32_t)len > cur_remaining) {
         len = (uint16_t)cur_remaining;
     }
-    cur_chunklen = len;
     cur_remaining -= len;
 
     ZXN_NEXTREGA(0x51, cur_page); /* MMU1 <- sample page (runtime value) */

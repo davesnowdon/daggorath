@@ -3,6 +3,12 @@
 *.prg
 *.d81
 *.raw
+# ...but the converted PCM sound sets ARE build/runtime inputs and ship
+# with the repo (desktop loads raw-22050 at runtime; gen_sfxbin packs
+# raw-11025/raw-7350 into the platform blobs)
+!assets/raw-22050/*.raw
+!assets/raw-11025/*.raw
+!assets/raw-7350/*.raw
 build/
 *.log
 tests/golden/*.bin

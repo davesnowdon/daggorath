@@ -55,6 +55,26 @@ make check          # the full gate: unit tests, module A/B, scenario goldens
 make release        # copy playable sets to the per-system folders
 ```
 
+### Prerequisites
+
+| target | needs |
+|---|---|
+| `make desktop` | gcc, SDL2 dev headers |
+| `make next` | z88dk with zsdcc/z80n (default path below; override `TOOLCHAIN=` in `spectrum-next/Makefile`), python3 |
+| `make mega65` | llvm-mos-sdk + mega65-libc (override `LLVM_MOS=`/`LIBC65=` in `mega65/Makefile`), python3 |
+| `make check` | gcc, python3, SDL2 (scenario replays run the desktop shim) |
+
+The committed `assets/raw-*` PCM sets are the sound inputs — nothing
+external is needed to build (their provenance: `assets/sfx-src/README.md`).
+One verification layer is optional: module A/B (`tests/Makefile`
+`ab-modules`) diffs against the **C++ PC-Port compiled verbatim** and
+expects its checkout at `../../../native-port/DungeonsOfDaggorath/`;
+without it that diff is skipped with a warning (the rest of the gate
+still runs).  The z80 asm identity tests (`tests/z80draw/run.sh`,
+`tests/z80scale/run.sh`) and `tests ab-mos` additionally need the Next
+and MEGA65 toolchains respectively; emulator-based checks
+(`tests/next-scene/`, `tests/mega65-scene/`) need ZEsarUX / xemu.
+
 Per-platform details (memory maps, hardware lessons, emulator
 automation): `docs/PLATFORM-NOTES-next.md`, `docs/PLATFORM-NOTES-mega65.md`;
 the verification story is `docs/ab-protocol.md`.  Both backends render
@@ -70,10 +90,12 @@ verified VECTOR.ASM port.
 - MEGA65: llvm-mos-sdk v23.0.1 (`mos-mega65-clang`, `mos-sim`),
   mega65-libc, xemu built from source at `~/retro-computing/mega65/`.
 
-## Provenance
+## Provenance & license
 
-Game code/data derive from the original released by rights-holder
-Douglas J. Morgan (grant of license archived in
-`../../disassembly/daggorath/original-source/`); the C++ port lineage is
-credited in its sources. This port keeps the authentic mode default;
-platform enhancements are opt-in toggles (Phase 4).
+See [LICENSE.md](LICENSE.md): the game is (c) 1982 Douglas J. Morgan /
+DynaMicro, distributed under his archived grant of license (vendored
+there verbatim, with the full lineage: original 6809 source → C++
+PC-Port → this re-core).  The new port code is free to use, modify and
+distribute under grant-mirroring terms.  Honouring the grant's
+"preserve the game unaltered" condition is why authentic behaviour is
+this port's default and platform enhancements must be opt-in.

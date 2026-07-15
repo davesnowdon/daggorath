@@ -59,13 +59,24 @@ ab-mos: ab-modules
 
 # Module-level A/B: extracted C dungeon/parser/object/creature/sched/
 # player-math vs the port's code verbatim.  Both dump CRC-tagged state;
-# outputs must be identical.
+# outputs must be identical.  The reference side needs the C++ PC-Port
+# checkout (an external input, not vendored - see LICENSE.md); when it
+# is absent, our side still builds and runs (ab-mos needs its output)
+# but the reference diff is skipped with a warning.
+PORT_SRC := ../../../native-port/DungeonsOfDaggorath/src
 ab-modules: ab_modules_c.c ab_stubs.c $(CORE)/dungeon.c $(CORE)/parser.c \
             $(CORE)/rng.c $(CORE)/object.c $(CORE)/creature.c \
             $(CORE)/sched.c $(CORE)/player.c
-	$(CC) $(CFLAGS) -Wno-unused-parameter -I$(CORE) -o ab_c $^
-	g++ -O1 -w -o ab_ref ../tools/ab_modules_ref.cpp \
-	    -I../../../native-port/DungeonsOfDaggorath/src \
-	    $$(sdl2-config --cflags) -I$$HOME/.local/include
-	./ab_c > ab_c.out && ./ab_ref > ab_ref.out
-	diff ab_c.out ab_ref.out && echo "AB-MODULES IDENTICAL"
+	@set -e; \
+	$(CC) $(CFLAGS) -Wno-unused-parameter -I$(CORE) -o ab_c $^; \
+	./ab_c > ab_c.out; \
+	if [ ! -d $(PORT_SRC) ]; then \
+	    echo "ab-modules: C++ port not found at $(PORT_SRC)"; \
+	    echo "            reference diff SKIPPED (clone the Daggorath" \
+	         "PC-Port there to enable it)"; \
+	else \
+	    g++ -O1 -w -o ab_ref ../tools/ab_modules_ref.cpp \
+	        -I$(PORT_SRC) $$(sdl2-config --cflags) -I$$HOME/.local/include; \
+	    ./ab_ref > ab_ref.out; \
+	    diff ab_c.out ab_ref.out && echo "AB-MODULES IDENTICAL"; \
+	fi

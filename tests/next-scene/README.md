@@ -17,11 +17,11 @@ Procedure (semi-automated; needs ZEsarUX + the built .nex):
    heartbeat phase, not rendering).
 
 TIMING CAVEAT: "wait for the prompt" must be event-driven, not a
-fixed sleep - the PREPARE hold stretches to ~30 wall seconds in
-ZEsarUX (see the core_wait_jiffies observation in
-docs/PLATFORM-NOTES-next.md).  Poll the dump against the golden until
-it converges; a too-early dump differs only in the leftover
-"PREPARE!" text cells.
+fixed sleep - the "PREPARE!" screen lasts ~30 wall seconds on the
+emulated Next (level generation crunching the C RNG; see the
+level-generation observation in docs/PLATFORM-NOTES-next.md).  Poll
+the dump against the golden until it converges; a too-early dump
+differs only in the leftover "PREPARE!" text cells.
 
 Result 2026-07-14 (commit e78e64e): 0 differing bytes -
 FIXED-SCENE PIXEL-IDENTICAL.  Chain: Next ULA = desktop fb =

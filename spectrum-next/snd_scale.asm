@@ -23,10 +23,12 @@
 ;   sp+4..5  dst   (points into the MMU0 bounce window)
 ;   sp+6..7  len   (bytes; 0 = no-op)
 ; Register usage: AF, BC, DE, HL and the SHADOW DE (via exx).  The
-; shadow set is safe here: sdcc's Z80 codegen never uses the alternate
-; registers and isr.asm does not exx, so an IM2 interrupt may fire at
-; any point.  IX and IY are never touched.  Not re-entrant (main
-; thread only, like the rasterizer).
+; shadow set is safe here because the frame ISR (isr.asm) saves and
+; restores the full alternate set around its C calls, so an IM2
+; interrupt may fire at any point.  (zsdcc 4.5.0 also never emits
+; exx/ex af,af' itself - verified - but the ISR save is what makes
+; this robust across compiler upgrades.)  IX and IY are never
+; touched.  Not re-entrant (main thread only, like the rasterizer).
 ;
 ; Inner loop is 69 T-states/byte; the worst case (the 22050-byte buzz,
 ; re-scaled only when the fade ramp crosses a volume tier, i.e. every
