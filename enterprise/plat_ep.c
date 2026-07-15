@@ -38,16 +38,14 @@
 #define FB_STRIDE 32u
 #define FB_BYTES  6144u
 
-/* The buffer the game currently draws into (the hidden one). */
-static uint8_t *draw_base = FB1_BASE;
+/* The buffer the game currently draws into (the hidden one).  NOT static:
+ * draw_ep.asm reads it per call (and rebuilds its row-high lookup when the
+ * high byte changes - both buffers are 256-aligned). */
+uint8_t *draw_base = FB1_BASE;
 
 /* row_addr[y] = draw_base + y*32 (linear; kept as a table so the hot plot
  * path is one index, matching the Next backend's shape). */
 static uint8_t *row_addr[192];
-
-static const uint8_t bit_mask[8] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
 
 static void ep_rebuild_row_addr(void)
 {
@@ -78,11 +76,32 @@ void plat_clear(void)
     __endasm;
 }
 
+/* The shipping rasterizer is draw_ep.asm (plain Z80, linear stride, solid
+ * H/V fast paths), verified pixel-identical to core/draw_ref.c by
+ * tests/z80draw-ep/run.sh under z88dk-ticks.  Build with -DDRAW_C_FALLBACK
+ * to use the original C DDA below instead - kept compiled in as the
+ * reference fallback. */
+extern void plat_draw_line_asm(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                               uint8_t vctfad, uint8_t flags);
+
+#ifndef DRAW_C_FALLBACK
+
+void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                    uint8_t vctfad, uint8_t flags)
+{
+    plat_draw_line_asm(x0, y0, x1, y1, vctfad, flags);
+}
+
+#else /* DRAW_C_FALLBACK */
+
 /* EXACTLY the VECTOR.ASM / core/draw_ref.c algorithm: 24.8 fixed point,
  * plot-candidate-then-step, endpoint never plotted, dot-period fades,
  * x-clip on the integer high byte.  Only the plot primitive differs from
- * draw_ref.c: bit-packed linear bytes instead of a byte-per-pixel map.
- * draw_ep.asm supersedes this in Phase 3 (proven identical under ticks). */
+ * draw_ref.c: bit-packed linear bytes instead of a byte-per-pixel map. */
+static const uint8_t bit_mask[8] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+};
+
 static int16_t incre(int16_t delta, uint16_t length)
 {
     int32_t q = ((int32_t)(delta < 0 ? -delta : delta) << 8)
@@ -140,6 +159,8 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
         yy += yinc;
     }
 }
+
+#endif /* DRAW_C_FALLBACK */
 
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {

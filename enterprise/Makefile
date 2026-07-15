@@ -7,11 +7,12 @@ export PATH   := $(Z88DK)/bin:$(PATH)
 
 CORE     := ../core
 CORE_SRC := $(wildcard $(CORE)/*.c)
-# Phase 2: IM1 takeover (isr_ep.asm = jiffies + keyboard) and the RANDOM.ASM
-# RNG in Z80 (rng_z80.asm, -DDOD_RNG_ASM - mandatory at 4 MHz; compiles out
-# the C rng_RANDOM).  The C line rasterizer in plat_ep.c is still the
-# reference until draw_ep.asm (Phase 3) supersedes it.
-SRC      := main.c plat_ep.c isr_ep.asm rng_z80.asm $(CORE_SRC)
+# isr_ep.asm = IM1 jiffies + keyboard; rng_z80.asm = RANDOM.ASM RNG
+# (-DDOD_RNG_ASM, mandatory at 4 MHz); draw_ep.asm = the line rasterizer
+# (linear stride, solid H/V fast paths - proven pixel-identical by
+# tests/z80draw-ep).  Build with -DDRAW_C_FALLBACK to fall back to the
+# C DDA in plat_ep.c.
+SRC      := main.c plat_ep.c isr_ep.asm rng_z80.asm draw_ep.asm $(CORE_SRC)
 
 # Bare crt0: the loader (not EXOS) places the 3 game segments and kills EXOS,
 # so the stock EXOS-integrated crt0 (opens VIDEO/KEYBOARD, forces FFh into
