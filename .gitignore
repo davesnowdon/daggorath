@@ -11,7 +11,9 @@
 !assets/raw-7350/*.raw
 build/
 *.log
-tests/golden/*.bin
+# goldens under tests/golden/ are COMMITTED test fixtures (regenerating
+# them needs the external C++ port - tools/make-goldens.sh); only the
+# scratch build area is ignored
 tests/golden/.build/
 __pycache__/
 *.pyc
