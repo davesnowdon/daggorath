@@ -110,24 +110,40 @@ identical on the Phase-2 binary):
   so aofile captures show burst envelopes rather than continuous
   tone.  Levels and sequencing are still faithful; real hardware
   paces by the prescalar.
-- **The "PREPARE!" pause is ~30 s of level-generation CPU time**, not
+- **The "PREPARE!" pause was ~30 s of level-generation CPU time**, not
   a timing bug: creature_NEWLVL -> dungeon_DGNGEN spins rng_RANDOM,
   and the C rng_RANDOM does 8x8 per-bit passes through lsl()/rol()
   FUNCTION CALLS (~90 calls per random byte under zsdcc - PC-sampled
   during the pause: rng_RANDOM/_lsl/_rol dominate; the jiffy counter
   ticks a verified 59.9/s throughout, and core_wait_jiffies itself is
-  correct).  The original CoCo also pauses famously long here, so the
-  feel is authentic-ish, but a Z80 asm rng_RANDOM (like draw_z80n)
-  would cut it to a few seconds - the top optimization candidate if
-  it bothers anyone.  Fade buzz steps run ~1.3x nominal for related
-  reasons (draw + pump cost on top of each 18-jiffy wait).
+  correct).  RESOLVED by rng_z80.asm (below).  Fade buzz steps still
+  run ~1.3x nominal for related reasons (draw + pump cost on top of
+  each 18-jiffy wait).
+
+## Asm RNG (post-Phase-4)
+
+rng_z80.asm replaces the C rng_RANDOM on the Next (core/rng.c compiles
+it out under -DDOD_RNG_ASM; the C stays the normative reference).  The
+whole 8x8-bit C inner loop collapses: the tap count's parity IS the
+Z80 P/V flag after `AND 0xE1`, and the three rol()s are three chained
+`RL` instructions - ~650 T-states per call (~23 us) vs several
+thousand for the C.  The final rng.carry is stored as 0/1 because the
+carry byte is part of dumped/saved state.  8-bit zsdcc returns go in L
+(verified against 4.5.0 codegen).
+
+Verified: tests/z80rng/run.sh - the REAL rng_z80.asm linked with the
+REAL core/rng.c (with the define, mirroring production) under
+z88dk-ticks vs the normative C with gcc: Z80RNG IDENTICAL over 20
+seeds x 256 calls including SEED/carry state bytes and the degenerate
+all-zero seed.  End-to-end: keyless boot trace shows the PREPARE +
+level-generation phase collapsing from ~33 s to ~2-3 s, and the fixed
+start scene still converges 0/6144 bytes vs the desktop golden (same
+dungeon, byte for byte).
 
 ## Still open
 
 - Real-hardware SD boot (Dave's Next: both files in one SD folder,
   launch the .nex from the Browser - see release/README-next.txt).
-- Optional speed-up of the level-generation pause (asm rng_RANDOM;
-  see the observation above).
 - CSpect second opinion (optional).
 
 ## Build & run

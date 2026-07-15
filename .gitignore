@@ -45,6 +45,10 @@ tests/z80scale/*
 !tests/z80scale/*.c
 !tests/z80scale/*.asm
 !tests/z80scale/run.sh
+tests/z80rng/*
+!tests/z80rng/*.c
+!tests/z80rng/*.asm
+!tests/z80rng/run.sh
 tests/ab_mos
 mega65/daggorath.prg
 mega65/daggorath.prg.elf

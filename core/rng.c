@@ -20,6 +20,15 @@ void rng_set_seed(dodBYTE s0, dodBYTE s1, dodBYTE s2)
     rng.SEED[2] = s2;
 }
 
+/* A backend may provide rng_RANDOM in assembly by defining DOD_RNG_ASM
+ * (the Spectrum Next does: spectrum-next/rng_z80.asm - the per-bit
+ * helper calls below cost ~90 calls per random byte under zsdcc, which
+ * made level generation take ~30 wall seconds).  This C version stays
+ * the normative reference: any replacement must be proven byte-exact
+ * against it, including the final rng.carry (it is part of the dumped/
+ * saved state) - see tests/z80rng/run.sh. */
+#ifndef DOD_RNG_ASM
+
 static dodBYTE lsl(dodBYTE c)
 {
     rng.carry = (dodBYTE)((c & 0x80u) ? 1 : 0);
@@ -61,3 +70,5 @@ dodBYTE rng_RANDOM(void)
     }
     return rng.SEED[0];
 }
+
+#endif /* DOD_RNG_ASM */

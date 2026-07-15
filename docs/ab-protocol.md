@@ -94,6 +94,9 @@ platform-notes docs):
 - **z80scale** (`tests/z80scale/run.sh`): the Next's Covox
   volume-scaling asm + its zsdcc-compiled LUT builder vs a gcc
   reference under z88dk-ticks - byte-identical output for all tiers.
+- **z80rng** (`tests/z80rng/run.sh`): the Next's asm rng_RANDOM
+  (swapped in with -DDOD_RNG_ASM) vs the normative core/rng.c -
+  byte-identical outputs and SEED/carry state over a 20-seed corpus.
 - **Fixed-scene diffs** (`tests/next-scene/`, `tests/mega65-scene/`):
   the same deterministic game start rendered on each emulated target,
   compared byte-for-byte against the desktop shim's framebuffer

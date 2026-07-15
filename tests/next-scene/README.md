@@ -17,11 +17,12 @@ Procedure (semi-automated; needs ZEsarUX + the built .nex):
    heartbeat phase, not rendering).
 
 TIMING CAVEAT: "wait for the prompt" must be event-driven, not a
-fixed sleep - the "PREPARE!" screen lasts ~30 wall seconds on the
-emulated Next (level generation crunching the C RNG; see the
-level-generation observation in docs/PLATFORM-NOTES-next.md).  Poll
-the dump against the golden until it converges; a too-early dump
-differs only in the leftover "PREPARE!" text cells.
+fixed sleep - game phases take variable wall time under emulation
+(the title fade dominates; the once-30-second "PREPARE!" pause is
+seconds now that rng_z80.asm replaced the C RNG - see
+docs/PLATFORM-NOTES-next.md).  Poll the dump against the golden until
+it converges; a too-early dump differs only in the leftover
+"PREPARE!" text cells.
 
 Result 2026-07-14 (commit e78e64e): 0 differing bytes -
 FIXED-SCENE PIXEL-IDENTICAL.  Chain: Next ULA = desktop fb =
