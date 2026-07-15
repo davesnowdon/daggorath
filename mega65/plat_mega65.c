@@ -40,8 +40,10 @@
  * pixel x is + (x & 0xF8) and the bit is 0x80 >> (x & 7).  A cell row
  * here (256 bytes) is contiguous in the bitmap too, so present is 24
  * row-block DMAs.  Before the first draw the buffer doubles as the
- * SFX loader's bounce buffer (bank 0 is too tight for both). */
-static uint8_t fb[6144];
+ * SFX loader's bounce buffer (bank 0 is too tight for both).
+ * fb lives at an ABSOLUTE low-RAM address (layout.s): the link region
+ * is nearly full, and crt0 does not zero it - plat_init must. */
+extern uint8_t fb[6144];
 static uint16_t rowbase[192];
 uint8_t *const plat_init_bounce = fb;
 
@@ -261,17 +263,59 @@ void plat_yield(void)
     /* no HALT on the 6502; the wait loops spin on plat_jiffies() */
 }
 
-/* ---- persistence: hyppo file access comes with the sound milestone ----- */
+/* ---- persistence: one save slot, overwritten in place ------------------ */
+/* Hyppo's writefile trap ($1C, hyppo_write.s) writes whole sectors of
+ * the CURRENT open file and never grows it, so DAGGOR65.SAV must
+ * already exist on the SD's FAT root with at least SAVE_BLOB_LEN
+ * (~3K) bytes - the release ships a zeroed 4K one.  ZSAVE fails
+ * gracefully (PLAT_ERR_IO -> the game's error path) if it's absent. */
+#include <mega65/fileio.h>
+extern uint8_t write512(const uint8_t *buf);   /* hyppo_write.s */
+
+static const char SAVE_NAME[] = "DAGGOR65.SAV";
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    const uint8_t *p = (const uint8_t *)buf;
+    uint8_t fd = open((char *)SAVE_NAME);
+    uint8_t ok = 1;
+    if (fd == 0xFFu) {
+        return PLAT_ERR_IO;
+    }
+    while (len > 0 && ok) {
+        /* always a full sector from the caller's buffer; the tail
+         * read-over on the last chunk is benign bank-0 RAM and load
+         * never reads those bytes back */
+        ok = write512(p);
+        p += 512;
+        len = (uint16_t)(len > 512u ? len - 512u : 0u);
+    }
+    close(fd);
+    return ok ? PLAT_OK : PLAT_ERR_IO;
 }
+
+extern uint8_t save_bounce[512];  /* absolute low RAM, layout.s */
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    (void)buf; (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    uint8_t *sec = save_bounce;   /* bounce for the final partial sector */
+    uint8_t *p = (uint8_t *)buf;
+    uint8_t fd = open((char *)SAVE_NAME);
+    uint8_t ok = 1;
+    if (fd == 0xFFu) {
+        return PLAT_ERR_IO;
+    }
+    while (len >= 512u && ok) {
+        ok = (read512(p) == 512u);
+        p += 512;
+        len = (uint16_t)(len - 512u);
+    }
+    if (len > 0 && ok) {          /* read512 always writes 512 bytes */
+        ok = (read512(sec) >= len);
+        memcpy(p, sec, len);
+    }
+    close(fd);
+    return ok ? PLAT_OK : PLAT_ERR_IO;
 }
 
 /* ---- lifecycle ----------------------------------------------------------- */

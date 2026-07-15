@@ -8,8 +8,8 @@ LIBC65 ?= $(HOME)/retro-computing/mega65/dev/mega65-libc
 
 CORE     := ../core
 CORE_SRC := $(wildcard $(CORE)/*.c)
-SRC      := main.c plat_mega65.c sound_mega65.c irq.s \
-            $(LIBC65)/src/llvm/fileio.s $(CORE_SRC)
+SRC      := main.c plat_mega65.c sound_mega65.c irq.s hyppo_write.s \
+            layout.s $(LIBC65)/src/llvm/fileio.s $(CORE_SRC)
 
 CFLAGS := -Os -flto -Wall -Wextra -I$(CORE) -I$(LIBC65)/include
 
@@ -28,6 +28,11 @@ DAGGOR65.SFX sfx_index65.h: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
 # SD card's FAT root - hyppo reads it from there, not from the D81)
 daggorath.d81: daggorath.prg ../tools/make_d81.py
 	python3 ../tools/make_d81.py $@ DAGGORATH daggorath.prg DAGGORATH
+
+# empty pre-sized save slot: hyppo's writefile can only overwrite an
+# existing file, so this goes in the SD FAT root beside the .sfx
+DAGGOR65.SAV:
+	dd if=/dev/zero of=$@ bs=4096 count=1 2>/dev/null
 
 .PHONY: clean run
 clean:
