@@ -101,6 +101,11 @@ void viewer_clearArea(TXB *a);
 /* re-blit one whole text area to the back buffer (port drawArea);
  * player_ShowTurn composes frames from it */
 void viewer_drawArea(TXB *a);
+#ifdef DOD_HEART_STATUS_ONLY
+/* fast heartbeat path: re-blit only the status row to the live display
+ * (viewer_text.c), avoiding a full scene redraw per accelerating beat */
+void viewer_drawStatusLive(void);
+#endif
 void viewer_drawTorchHighlite(void); /* invert lit-torch name (examine) */
 void viewer_clear_screen(void);      /* CLEAR.ASM: clear w/ VDGINV fill */
 /* Blocking full-screen fades (port Viewer::ShowFade) with the port's

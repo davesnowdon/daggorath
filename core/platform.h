@@ -49,6 +49,18 @@ void    plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7]);
 void    plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols);
 void    plat_present(void);
 
+#ifdef DOD_HEART_STATUS_ONLY
+/* Live variants that draw straight to the on-screen buffer, bypassing the
+ * back-buffer/present cycle.  On a double-buffered backend the fast
+ * heartbeat path (sched.c, under this same flag) re-blits only the status
+ * row - which is all a heartbeat changes - to the visible buffer instead of
+ * recomposing and presenting the whole scene, which at 4 MHz costs 0.2-0.5s
+ * of visible vector redraw per accelerating beat.  Backends that leave the
+ * flag undefined never see or call these. */
+void    plat_blit_glyph_live(uint8_t col, uint8_t row, const uint8_t rows[7]);
+void    plat_invert_region_live(uint8_t col, uint8_t row, uint8_t ncols);
+#endif
+
 /* --- sound: one channel, play preempts, matching the CoCo's single DAC - */
 void    plat_sound_play(uint8_t sound_id, uint8_t volume /* 0..255 */);
 void    plat_sound_stop(void);

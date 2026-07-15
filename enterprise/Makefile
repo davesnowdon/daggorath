@@ -17,7 +17,8 @@ SRC      := main.c plat_ep.c isr_ep.asm rng_z80.asm $(CORE_SRC)
 # so the stock EXOS-integrated crt0 (opens VIDEO/KEYBOARD, forces FFh into
 # page 2) must NOT run.  bare_crt0.asm keeps only SP/BSS/atexit init + call main.
 ZCCFLAGS := +enterprise -compiler=sdcc -subtype=com -crt0=$(CURDIR)/bare_crt0 \
-            -SO3 --max-allocs-per-node100000 --opt-code-size -DDOD_RNG_ASM \
+            -SO3 --max-allocs-per-node100000 --opt-code-size \
+            -DDOD_RNG_ASM -DDOD_HEART_STATUS_ONLY \
             -I$(CORE) -pragma-include:zpragma_ep.inc
 
 # 8.3-safe name (FAT12 base is max 8 chars): DAGGORAT.COM on disk.

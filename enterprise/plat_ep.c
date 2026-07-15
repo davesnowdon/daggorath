@@ -162,6 +162,36 @@ void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
     }
 }
 
+#ifdef DOD_HEART_STATUS_ONLY
+/* Live blits target the VISIBLE buffer (the one that is not draw_base), so
+ * the fast-heartbeat status refresh appears without a present/flip and never
+ * disturbs the hidden buffer's in-progress or stale scene.  The main thread
+ * runs sched_CLOCK (the only caller) and plat_present serially, so draw_base
+ * is stable here - no ISR touches it. */
+void plat_blit_glyph_live(uint8_t col, uint8_t row, const uint8_t rows[7])
+{
+    uint8_t *vbase = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
+    uint8_t y = (uint8_t)(row << 3);
+    uint8_t k;
+    for (k = 0; k < 7u; ++k) {
+        *(vbase + (uint16_t)(y + k) * FB_STRIDE + col) = rows[k];
+    }
+}
+
+void plat_invert_region_live(uint8_t col, uint8_t row, uint8_t ncols)
+{
+    uint8_t *vbase = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
+    uint8_t y = (uint8_t)(row << 3);
+    uint8_t k, c;
+    for (k = 0; k < 7u; ++k) {
+        uint8_t *p = vbase + (uint16_t)(y + k) * FB_STRIDE + col;
+        for (c = 0; c < ncols; ++c) {
+            p[c] ^= 0xFFu;
+        }
+    }
+}
+#endif
+
 /* Flip: publish the just-drawn hidden buffer, then hand the old front buffer
  * back as the new draw target.  Nick reloads LD1 from the LPT only at the top
  * of each frame, so writing the LPT bytes mid-frame can't tear the current

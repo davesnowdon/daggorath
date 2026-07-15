@@ -65,6 +65,43 @@ void viewer_drawArea(TXB *a)
     }
 }
 
+#ifdef DOD_HEART_STATUS_ONLY
+/* Live variant of blit_cell: identical glyph/inversion logic, but painted
+ * to the on-screen buffer via the plat *_live primitives (see platform.h).
+ * Only compiled for the fast-heartbeat backend. */
+static void blit_cell_live(const TXB *a, dodSHORT pos)
+{
+    dodBYTE col = (dodBYTE)(pos & 31u);
+    dodBYTE row = (dodBYTE)(a->top + pos / 32u);
+    dodBYTE c = a->area[pos];
+
+    if (c < FONT_NORMAL_COUNT) {
+        plat_blit_glyph_live(col, row, FONT_NORMAL[c]);
+    } else if (c >= FONT_SPECIAL_BASE
+               && c < FONT_SPECIAL_BASE + FONT_SPECIAL_COUNT) {
+        plat_blit_glyph_live(col, row, FONT_SPECIAL[c - FONT_SPECIAL_BASE]);
+    } else {
+        return;
+    }
+    if (a->TXINV != 0) {
+        plat_invert_region_live(col, row, 1);
+    }
+}
+
+/* Re-blit the status row to the live display without a full scene redraw.
+ * A heartbeat only toggles the two heart cells (statArea 15-16), so the rest
+ * of the row re-paints to identical pixels; the visible buffer ends up
+ * pixel-identical to a full viewer_draw_game() for the status line, and the
+ * 3D view / text area (unchanged since the last full redraw) stay put. */
+void viewer_drawStatusLive(void)
+{
+    dodSHORT ctr;
+    for (ctr = 0; ctr < viewer.TXTSTS.len; ++ctr) {
+        blit_cell_live(&viewer.TXTSTS, ctr);
+    }
+}
+#endif
+
 /* CLEAR.ASM CLRPRX + CLRSTX: clear the text and status blocks (grid and
  * display), homing their cursors */
 void viewer_CLRSCR(void)

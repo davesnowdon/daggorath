@@ -166,8 +166,17 @@ void sched_CLOCK(void)
                         player.HEARTS = 0xFF;
                     }
                     if (!player.turning) {
+#ifdef DOD_HEART_STATUS_ONLY
+                        /* A heartbeat only toggles the two heart cells; on a
+                         * slow double-buffered backend a full viewer_draw_game
+                         * (0.2-0.5s of vector redraw at 4 MHz, per accelerating
+                         * beat) is unplayable.  Re-blit just the status row to
+                         * the live display - pixel-identical end state. */
+                        viewer_drawStatusLive();
+#else
                         --viewer.UPDATE;
                         viewer_draw_game();
+#endif
                     }
                 }
             }
