@@ -53,6 +53,9 @@ tests/z80draw-ep/*
 !tests/z80draw-ep/*.c
 !tests/z80draw-ep/*.asm
 !tests/z80draw-ep/run.sh
+tests/ep-scene/*
+!tests/ep-scene/*.py
+!tests/ep-scene/run.sh
 tests/ab_mos
 # Enterprise 64/128 build artifacts (loader + game image + emulator output)
 *.com
