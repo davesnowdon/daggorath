@@ -19,13 +19,14 @@ dot-period fades, and the 60 Hz jiffy scheduler. Backends implement 13
 | dir | contents |
 |---|---|
 | `core/` | portable game core (C99, no OS/float/heap; strict `-Werror -pedantic`) |
-| `desktop/` | SDL2 reference backend + verification tooling (`--pattern`, `--record/--replay`, `--turbo`, `--headless`, `--screenshot`) |
-| `spectrum-next/` | z88dk (zsdcc) + Z80n backend → `daggorath.nex` *(Phase 2)* |
-| `mega65/` | llvm-mos backend → `daggorath.prg`/`.d81` *(Phase 3)* |
-| `tools/` | table generators (dual-source verified), golden generators, wav2raw |
-| `tests/` | host unit tests vs goldens from the C++ port's own compiled code |
+| `desktop/` | SDL2 reference backend + verification tooling (`--pattern`, `--record/--replay`, `--turbo`, `--headless`, `--screenshot`, `--dump-state`) |
+| `spectrum-next/` | z88dk (zsdcc) + Z80n backend → `daggorath.nex` + `daggorath.sfx` — **complete** (28 MHz, Z80n asm rasterizer, zxnDMA→Covox sound, IM2 jiffies, esxDOS saves) |
+| `mega65/` | llvm-mos backend → `daggorath.prg`/`.d81` + `DAGGOR65.SFX`/`.SAV` — **complete** (40 MHz, VIC-IV bitmap, Audio DMA w/ distance volume, hyppo saves; `m65mon.py` drives xemu) |
+| `tools/` | table generators (dual-source verified), golden generators, wav2raw, gen_sfxbin, make_d81 |
+| `tests/` | unit tests, module A/B, scenario goldens, coverage, `ab-mos`, fixed-scene diffs (`next-scene/`, `mega65-scene/`) |
 | `assets/` | PCM sound effects converted from the port's WAVs |
-| `docs/` | extraction conventions, wait-site audit, platform notes |
+| `docs/` | extraction conventions, wait-site audit, A/B protocol, platform notes |
+| `release/` | player-facing READMEs + command crib for `make release` |
 
 ## Verification approach
 
@@ -46,12 +47,20 @@ authority, not the port): radix-7 `>>7` scaling instead of float `/127`;
 dot-period fades instead of gray lines; original 5-bit glyph font instead
 of the port's vector font; ceiling-line ROM fix.
 
-## Build & test (desktop)
+## Build & test
 
 ```sh
-cd tests && make golden && make     # unit tests (goldens need the C++ port source present)
-cd desktop && make && ./daggorath --pattern   # render verified tables
+make                # desktop + Next (.nex) + MEGA65 (.prg/.d81)
+make check          # the full gate: unit tests, module A/B, scenario goldens
+make release        # copy playable sets to the per-system folders
 ```
+
+Per-platform details (memory maps, hardware lessons, emulator
+automation): `docs/PLATFORM-NOTES-next.md`, `docs/PLATFORM-NOTES-mega65.md`;
+the verification story is `docs/ab-protocol.md`.  Both backends render
+the fixed reference scene pixel-identical to the desktop core
+(`tests/next-scene/`, `tests/mega65-scene/`), whose rasterizer is the
+verified VECTOR.ASM port.
 
 ## Toolchains (Phase 0, all set up)
 

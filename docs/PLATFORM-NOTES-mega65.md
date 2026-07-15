@@ -103,9 +103,20 @@ the mounted D81.
    creature sounds verified through the channel registers in xemu.
 6. Attract demo runs unattended (shield/sword/attack sequence).
 
-Still open: real-hardware boot (Dave), NTSC 60 Hz spot-check, save
-games (mega65-libc exposes no hyppo write - Phase 4), the 60 s
-heartbeat stopwatch check (same open item as the Next).
+7. Save games (Phase 4): ZSAVE runs open/write512/close through
+   hyppo's writefile trap (hyppo_write.s - the mirror of read512,
+   overwrite-in-place of the pre-sized DAGGOR65.SAV); a ZLOAD
+   round-trip in xemu restored the saved torch-lit game.
+8. Clock stopwatch (Phase 4): 3639 jiffies over 61.2 wall seconds in
+   PAL xemu (59.4/s) and 59.94/s in NTSC mode (-videostd 1), i.e.
+   both variants of the frame->jiffy conversion are right; the
+   residual is emulator wall-clock tolerance, not a ratio error.
+
+Still open: real-hardware boot (Dave's MEGA65 - see release/
+README-mega65.txt for the SD layout).  Future enhancement ideas kept
+deliberately out of V1 (authentic mode only): per-creature colour via
+the matrix, stereo panning across the four Audio DMA channels,
+phosphor-colour palette toggle.
 
 ## xemu automation (mega65/m65mon.py)
 

@@ -1,0 +1,40 @@
+DUNGEONS OF DAGGORATH (1982, DynaMicro) - command crib
+=======================================================
+
+Type commands at the "?" prompt and press RETURN/ENTER.  Every word
+may be abbreviated to any unambiguous prefix ("P R T" = PULL RIGHT
+TORCH).  DELETE rubs out; the parser echoes as you type.
+
+MOVEMENT
+  MOVE              M         one cell forward
+  MOVE BACK         M B       backstep (also LEFT/RIGHT/AROUND)
+  TURN LEFT/RIGHT   T L, T R  quarter turn
+  TURN AROUND       T A       half turn
+  CLIMB UP/DOWN     C U, C D  ladders (holes in ceiling/floor)
+
+HANDS AND OBJECTS
+  PULL LEFT/RIGHT <obj>   P R T     take from the floor into a hand
+  GET  LEFT/RIGHT <obj>   G L SW    take from your pack into a hand
+  STOW LEFT/RIGHT         S L      hand into pack
+  DROP LEFT/RIGHT         D R      hand onto the floor
+  USE  LEFT/RIGHT         U R      use what the hand holds
+                                   (a TORCH must be USEd to light it!)
+  REVEAL LEFT/RIGHT       R R      identify a magic item
+  INCANT <word>                    speak a ring's word
+
+FIGHTING AND LOOKING
+  ATTACK LEFT/RIGHT       A R      strike with that hand
+  LOOK                    L        redraw the 3-D view
+  EXAMINE                 E        show pack + hands inventory
+
+SAVE / LOAD (one slot)
+  ZSAVE <name>            ZS A     save the game
+  ZLOAD <name>            ZL A     restore it
+
+THE HEART is your only meter: it beats faster as you exert yourself
+or take wounds.  If it flutters, REST - if it stops, so do you.
+Objects: TORCH (pine/lunar/solar), SWORD (wooden/iron/elvish),
+SHIELD (leather/bronze/mithril), FLASK, RING, SCROLL (the seer's
+vision map).  Five levels down lies the Wizard.
+
+Classic opening: P R T / U R / P L SW / E / L ... then explore.

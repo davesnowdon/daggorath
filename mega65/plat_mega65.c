@@ -18,7 +18,8 @@
  *          NTSC per $D06F.7 counts 1:1).
  * Sound    Audio DMA channel 0 (sound_mega65.c): the SFX blob streams
  *          from the SD through hyppo file reads into chip RAM at init.
- * Save     stubbed - mega65-libc exposes no hyppo write; Phase 4.
+ * Save     one slot, DAGGOR65.SAV in the SD FAT root, overwritten in
+ *          place through hyppo's writefile trap (hyppo_write.s).
  */
 #include <stdint.h>
 #include <string.h>

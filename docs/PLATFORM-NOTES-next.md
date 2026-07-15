@@ -64,19 +64,28 @@ in 8K MMU pages, not the main map.
    jiffy/frame at 60 Hz instead of the 6/5 pattern.
 5. **Save/load**: ZSAVE/ZLOAD -> `daggorath.sav` via esxDOS.
 
+## Resolved in Phase 4
+
+- Fixed-scene diff vs the desktop shim: 0/6144 bytes differ
+  (tests/next-scene/, Phase 2 close-out).
+- Clock stopwatch: 3612 jiffies over 61.2 wall seconds in ZEsarUX
+  (59.0/s) - the 6/5 frame->jiffy ratio is exact by construction;
+  the residual is emulator wall-clock tolerance, not a ratio error.
+- Release packaging: `make release` copies daggorath.nex +
+  daggorath.sfx + README/CONTROLS to
+  ~/retro-computing/spectrum-next/games/Daggorath/.
+
 ## Still open
 
-- Volume scaling (pre-scaled sample tiers, or a CPU scale into a
-  bounce page at play time).
-- Fixed-scene screenshot diff vs the desktop shim; 60 s heartbeat
-  stopwatch check; CSpect second opinion; real-hardware SD boot
-  (copy daggorath.nex + daggorath.sfx into the same SD folder).
+- Real-hardware SD boot (Dave's Next: both files in one SD folder,
+  launch the .nex from the Browser - see release/README-next.txt).
+- Covox volume scaling (pre-scaled sample tiers, or a CPU scale into
+  a bounce page at play time) - the one authenticity gap vs the
+  MEGA65's true distance volume.
+- CSpect second opinion (optional).
 
 ## Build & run
 
     make -C spectrum-next            # daggorath.nex (needs Phase-0 toolchain)
     make -C spectrum-next run        # smartload into ZEsarUX
-
-Verification next steps: fixed-scene screenshot diff vs the desktop
-shim, 60 s heartbeat-count timing check, CSpect second opinion, real
-hardware from SD.
+    make release                     # (repo root) copy the playable set
