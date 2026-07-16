@@ -11,8 +11,13 @@ from two verified sources:
 The portable core keeps the original's data and math *exactly*: the
 24-bit LFSR RNG (identical dungeons), the packed 5-bit text and font,
 the byte vector shape tables, radix-7 (`>>7`) scaling, the VECTOR.ASM
-dot-period fades, and the 60 Hz jiffy scheduler. Backends implement 13
-`plat_*` functions (see `core/platform.h`).
+dot-period fades, and the 60 Hz jiffy scheduler. Backends implement the
+`plat_*` contract (see `core/platform.h`).  The core is frozen; the only
+sanctioned deviations are two build flags, each proven byte-identical
+with the flag off by the full gate: `-DDOD_RNG_ASM` (backends swap in an
+asm RNG — mandatory at 4 MHz) and `-DDOD_HEART_STATUS_ONLY` (heartbeat
+re-blits only the status row instead of a full redraw — the Enterprise
+would otherwise spend 0.2-0.5 s per beat).
 
 ## Layout
 
