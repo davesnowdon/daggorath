@@ -219,6 +219,8 @@ void plat_invert_region_live(uint8_t col, uint8_t row, uint8_t ncols)
  * frame.  We then wait for the frame boundary so the flip is live before we
  * start clearing the old front buffer (which would otherwise still be on
  * screen).  Z80 base == Nick address in the FF segment, so draw_base IS LD1. */
+extern volatile uint8_t frame_flag;    /* isr_ep.asm: set on each frame int */
+
 void plat_present(void)
 {
     uint16_t a = (uint16_t)draw_base;
@@ -226,26 +228,23 @@ void plat_present(void)
     LPT_LD1[1] = (uint8_t)(a >> 8);      /* LD1 hi */
 
     /* Nick re-reads the visible record's LD1 at the top of every frame, so
-     * writing the LPT bytes mid-frame can't tear the current frame.  HALT to
-     * the next frame interrupt (fired near end-of-visible, before the top
-     * border + reload) so the flip is live before we hand the old front
-     * buffer back as the draw target and the core clears it. */
-    __asm halt __endasm;
+     * writing the LPT bytes mid-frame can't tear the current frame.  Wait
+     * for the next FRAME interrupt (fired near end-of-visible, before the
+     * top border + reload) so the flip is live before we hand the old front
+     * buffer back as the draw target and the core clears it.  A plain HALT
+     * is not enough once sound plays: sample interrupts (up to 7353/s) wake
+     * HALT early, so loop on the ISR's frame flag. */
+    frame_flag = 0;
+    do {
+        __asm halt __endasm;
+    } while (!frame_flag);
 
     draw_base = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
     ep_rebuild_row_addr();
 }
 
-/* ---- sound: stubbed for Phase 1 --------------------------------------- */
-void plat_sound_play(uint8_t sound_id, uint8_t volume)
-{
-    (void)sound_id;
-    (void)volume;
-}
-
-void plat_sound_stop(void) { }
-
-uint8_t plat_sound_playing(void) { return 0; }
+/* ---- sound: sound_ep.c (Dave DAC PCM; isr_ep.asm sample engine) -------- */
+extern void ep_snd_init(void);            /* sound_ep.c */
 
 /* ---- input: port-B5h keyboard matrix scan ----------------------------- */
 /* EP keyboard: OUT (B5h),row selects one of 10 rows (Dave latches row =
@@ -490,6 +489,9 @@ void plat_init(void)
     ep_nick_lpt();                      /* Nick now scans our LPT (showing FB0) */
 
     ep_isr_start();                     /* IM1: 60 Hz jiffies + keyboard; EI */
+
+    ep_snd_init();                         /* Dave DAC PCM, if the loader left a
+                                         * blob (handoff block at 0x00F0) */
 }
 
 void plat_shutdown(void)

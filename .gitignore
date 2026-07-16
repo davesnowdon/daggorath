@@ -65,6 +65,11 @@ enterprise/game.bin
 enterprise/sizes.inc
 enterprise/run/
 enterprise/rundiag/
+enterprise/run-exp/
+enterprise/DAGGOR1.SFX
+enterprise/DAGGOR2.SFX
+enterprise/sfx_index_ep.h
+enterprise/sfx_bins.inc
 mega65/daggorath.prg
 mega65/daggorath.prg.elf
 mega65/daggorath.map
@@ -79,3 +84,8 @@ tests/ep-probe/*
 !tests/ep-probe/probe_asm.asm
 !tests/ep-probe/parse_dave.py
 !tests/ep-probe/run.sh
+
+# ep-sound harness artifacts (keep sources + run.sh)
+tests/ep-sound/*
+!tests/ep-sound/analyze_wav.py
+!tests/ep-sound/run.sh

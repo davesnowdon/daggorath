@@ -36,7 +36,8 @@ XDISP="${XDISP:-:2}"
 J_LO=2000
 J_HI=4400
 J_STEP=2
-SNAP_FIRST=26         # seconds after boot-harness completion for 1st snap
+SNAP_FIRST=34         # seconds after boot-harness completion for 1st snap
+                      # (Phase 4: the ~70K SFX blob adds ~8s of loading)
 SNAP_N=8
 SNAP_GAP=2.2          # seconds between snapshots
 
@@ -51,13 +52,17 @@ done
 echo "   $(ls golden-frames/g*.pgm | wc -l) frames dumped"
 
 echo "== 2. EP build + boot (ep128emu on $XDISP)"
-make -C "$PORT/enterprise" loader.com game.bin >/dev/null
+# DAGGOR1.SFX rides along since Phase 4: the demo then runs WITH the sample
+# interrupts live, so the byte-exact scene match and the jiffy stopwatch
+# below also prove the sound engine is video- and clock-neutral.
+make -C "$PORT/enterprise" loader.com game.bin DAGGOR1.SFX >/dev/null
 pkill -9 -f "Xephyr $XDISP" 2>/dev/null || true
 pkill -9 -f ep128emu 2>/dev/null || true
 sleep 1
 rm -rf run
 OUTDIR="$(pwd)/run" "$DEVTOOLS/runcom.sh" \
     "$PORT/enterprise/loader.com" "$PORT/enterprise/game.bin" \
+    "$PORT/enterprise/DAGGOR1.SFX" \
     > run-boot.log 2>&1
 T0=$(date +%s.%N)
 echo "   booted (game entering title fade)"
