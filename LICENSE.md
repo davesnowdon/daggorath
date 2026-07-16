@@ -19,15 +19,15 @@ released it under the grant reproduced verbatim below.
 3. **This repository** — a portable-C99 re-core verified against BOTH
    ancestors (byte-identical assembly round-trip of the original;
    module-level A/B against the PC-Port; see `docs/ab-protocol.md`),
-   plus new backends for the ZX Spectrum Next and MEGA65, tools and
-   tests.  The committed PCM sets in `assets/raw-*` are rate-converted
+   plus new backends for the ZX Spectrum Next, MEGA65 and Enterprise
+   64/128, tools and tests.  The committed PCM sets in `assets/raw-*` are rate-converted
    from the PC-Port's WAVs (see `assets/sfx-src/README.md`).
 
 ## Terms for this repository's code
 
 The new material in this repository (the portable core extraction, the
-`desktop/`, `spectrum-next/` and `mega65/` backends, `tools/` and
-`tests/`) is provided in the same spirit as the grant below: you may
+`desktop/`, `spectrum-next/`, `mega65/` and `enterprise/` backends,
+`tools/` and `tests/`) is provided in the same spirit as the grant below: you may
 use, modify and distribute it freely, for any purpose, with the sole
 request that you exercise every effort to preserve the game itself in
 its original and unaltered form — which is why authentic behaviour is

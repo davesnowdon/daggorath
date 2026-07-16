@@ -58,12 +58,21 @@ DAGGOR1.SFX DAGGOR2.SFX sfx_index_ep.h sfx_bins.inc: ../tools/gen_sfxep.py \
 loader.com game.bin: daggorat.com loader.s build-loader.sh sfx_bins.inc
 	./build-loader.sh
 
-.PHONY: clean run loader
+.PHONY: clean run loader disk
 loader: loader.com
+
+# The shippable 720K FAT12 disk: works as floppy A in ep128emu AND as a
+# file source for real-hardware SD cards (copy the four files onto the
+# card; the SD adapter's EXDOS sees them the same way).
+daggorath-ep.img: loader.com game.bin DAGGOR1.SFX DAGGOR2.SFX
+	python3 ../tools/make_fat12.py $@ \
+	    loader.com LOADER.COM game.bin GAME.BIN \
+	    DAGGOR1.SFX DAGGOR1.SFX DAGGOR2.SFX DAGGOR2.SFX
+disk: daggorath-ep.img
 
 clean:
 	rm -f daggorat.com daggorat daggorat.map *.o zcc_opt.def \
-	      loader.com game.bin sizes.inc \
+	      loader.com game.bin sizes.inc daggorath-ep.img \
 	      DAGGOR1.SFX DAGGOR2.SFX sfx_index_ep.h sfx_bins.inc
 
 # build the disk (loader + raw game image + SFX blobs), boot ep128emu under

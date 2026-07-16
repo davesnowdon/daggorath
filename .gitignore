@@ -94,3 +94,4 @@ tests/ep-sound/*
 tests/ep-save/*
 !tests/ep-save/fat12.py
 !tests/ep-save/run.sh
+enterprise/daggorath-ep.img
