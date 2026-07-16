@@ -820,6 +820,18 @@ bt_rows:
     ld   (v_ready), a
     ret
 
+; Invalidate the lookup tables (Phase 5): the save dance's EXOS-state
+; restore overwrites the video segment above 0xD800, which includes the
+; table pages at 0xF000-0xF2FF.  Zeroing both flags makes the next draw
+; call rebuild everything (v_basehi 0 never matches a real 0xC0/0xD8
+; base, so build_rowhi re-runs too).
+PUBLIC _draw_tables_reset
+_draw_tables_reset:
+    xor  a
+    ld   (v_ready), a
+    ld   (v_basehi), a
+    ret
+
 ; rebuild rowhi[y] = draw_base_hi + (y>>3) and cache the base high byte.
 ; Called whenever _draw_base's high byte != v_basehi (once per buffer
 ; flip; both EP framebuffers are 256-aligned so the low byte is 0).

@@ -89,3 +89,8 @@ tests/ep-probe/*
 tests/ep-sound/*
 !tests/ep-sound/analyze_wav.py
 !tests/ep-sound/run.sh
+
+# ep-save harness artifacts (keep sources + run.sh)
+tests/ep-save/*
+!tests/ep-save/fat12.py
+!tests/ep-save/run.sh

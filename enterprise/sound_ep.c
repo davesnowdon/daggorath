@@ -151,6 +151,16 @@ void plat_sound_stop(void)
     }
 }
 
+/* Re-arm Dave after the save dance handed the chip to EXOS (which resets
+ * A7h to its own convention).  The blob segments and the LUT survive the
+ * dance untouched, so this is just the three register writes. */
+void ep_snd_reinit(void)
+{
+    if (snd_profile != 0u) {
+        snd_dave_init();
+    }
+}
+
 uint8_t plat_sound_playing(void)
 {
     return snd_active;

@@ -348,19 +348,20 @@ void plat_yield(void)
     __asm halt __endasm;
 }
 
-/* ---- persistence: stubbed for Phase 1 (Phase 5 = EXOS channel I/O) ----- */
+/* ---- persistence: the EXOS dance (dance_ep.asm; Phase 5) --------------- */
+/* Implemented in ep_dance() below plat_init (it rebuilds the video state
+ * with the same helpers plat_init uses). */
+static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len);
+static void ep_saves_init(void);
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
-    (void)buf;
-    (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    return ep_dance(0, (uint16_t)buf, len);
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    (void)buf;
-    (void)len;
-    return PLAT_ERR_UNSUPPORTED;
+    return ep_dance(1, (uint16_t)buf, len);
 }
 
 /* ---- lifecycle -------------------------------------------------------- */
@@ -492,8 +493,64 @@ void plat_init(void)
 
     ep_snd_init();                         /* Dave DAC PCM, if the loader left a
                                          * blob (handoff block at 0x00F0) */
+
+    ep_saves_init();                    /* the EXOS dance, if the loader
+                                         * stashed the EXOS state */
 }
 
 void plat_shutdown(void)
 {
+}
+
+/* ---- the EXOS dance (Phase 5): in-game save/load ----------------------- */
+/* Full story in dance_ep.asm.  The dance restores the EXOS-state stash
+ * into the video segment, revives EXOS for the channel I/O (system
+ * segment back at page 2, loader segment's EXOS stub at page 0, blob
+ * bounced into the loader segment's dead low RAM), then re-stashes and
+ * freezes it again.  Everything it destroys is video state this wrapper
+ * rebuilds: the LPT, the rasterizer lookup tables, and FB1's content
+ * (FB0 keeps the last frame, minus a 112-byte strip the parked mini-LPT
+ * borrowed; the game's next text print / full redraw repaints it). */
+#define EP_HANDOFF ((const volatile uint8_t *)0x00F0)
+
+extern volatile uint8_t dance_op, dance_status, dance_loader_seg;
+extern volatile uint16_t dance_buf, dance_len;
+extern void dance_run(void);
+extern void draw_tables_reset(void);   /* draw_ep.asm */
+extern void ep_snd_reinit(void);       /* sound_ep.c */
+
+static uint8_t ep_saves_ok;
+
+static void ep_saves_init(void)
+{
+    dance_loader_seg = EP_HANDOFF[10];
+    ep_saves_ok = EP_HANDOFF[11];
+}
+
+static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len)
+{
+    if (!ep_saves_ok) {
+        return PLAT_ERR_UNSUPPORTED;
+    }
+    /* page 0 is remapped during the dance and page 3 belongs to EXOS: the
+     * blob must sit in pages 1-2 (it does: SAVBUF is core BSS) */
+    if (buf < 0x4000u || (uint16_t)(buf + len) > 0xC000u || buf + len < buf) {
+        return PLAT_ERR_IO;
+    }
+    plat_sound_stop();
+    dance_op = op;
+    dance_buf = buf;
+    dance_len = len;
+    __asm di __endasm;
+    dance_run();                       /* returns with DI held, P0 = game */
+
+    /* rebuild everything the EXOS restore overwrote in the video segment */
+    ep_build_lpt();
+    ep_nick_lpt();
+    draw_tables_reset();
+    plat_clear();                      /* FB1 (draw target) held EXOS state */
+    ep_snd_reinit();
+    __asm ei __endasm;
+
+    return (dance_status == 0) ? PLAT_OK : PLAT_ERR_IO;
 }

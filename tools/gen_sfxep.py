@@ -20,9 +20,11 @@ Constraints encoded here (matching isr_ep.asm / sound_ep.c / loader.s):
     real low-pass, better than naive decimation).
 
 Profiles:
-  1 (stock EP128): 3 dynamic 16K bins + F8-tail (12K) + FE-tail bins.
-    Transient-rich mechanics stay full-rate; long/soft sounds go half-rate;
-    the DEMOTE list moves further sounds to half-rate until the pack fits.
+  1 (stock EP128): 3 dynamic 16K bins + F8-tail (2K) + FE-tail bins.
+    Transient-rich mechanics stay full-rate; long/soft sounds go
+    half-rate; the four long creature voices go quarter-rate (the save
+    dance's EXOS-state stash owns the rest of the F8 tail - Phase 5);
+    the DEMOTE list moves further sounds down a rate until the pack fits.
   2 (expanded RAM): 8 dynamic 16K bins, everything full-rate.
 
 usage: gen_sfxep.py <raw-7350-dir> <out-dir>
@@ -40,21 +42,28 @@ NAMES = [
     "19_buzz",
 ]
 
-PERIOD_FULL = 33            # 250000/34 = 7352.94 Hz
-PERIOD_HALF = 67            # 250000/68 = 3676.47 Hz
+PERIOD_FULL = 33            # 250000/34  = 7352.94 Hz
+PERIOD_HALF = 67            # 250000/68  = 3676.47 Hz
+PERIOD_QUARTER = 135        # 250000/136 = 1838.24 Hz
 BLOCK = 128
 PAD = 0x80                  # DAC midline = silence
 
-# Stock profile: sounds that KEEP full rate (sharp transients where
-# halving audibly dulls the attack).  Everything else starts half-rate.
+# Stock profile rate assignment.  FULL: sharp transients where halving
+# audibly dulls the attack.  QUARTER: the four long creature voices
+# (low-frequency growls; proximity cues that must be present more than
+# crisp).  Everything else: half-rate.
 FULL_RATE_STOCK = {
     "00_squeak", "04_klank", "06_pssst", "07_kklank", "08_pssht",
     "0F_clang", "10_whoosh", "11_chuck", "12_klink", "13_clank",
     "14_thud", "17_heart", "18_heart",
 }
-# Demoted to half-rate one at a time (in this order) if the pack is over
+QUARTER_RATE_STOCK = {
+    "02_growl", "05_grawl", "09_snarl", "0A_bdlbdl", "0B_bdlbdl",
+}
+# Demoted one rate level at a time (in this order) if the pack is over
 # budget.  Longest / least transient first.
-DEMOTE_ORDER = ["0F_clang", "07_kklank", "13_clank", "04_klank"]
+DEMOTE_ORDER = ["0F_clang", "07_kklank", "13_clank", "04_klank",
+                "0C_gluglg", "19_buzz"]
 
 # Bin capacities and the (bin-code, window-base) each bin maps to at run
 # time.  Codes 0..N-1 index the loader's dynamically allocated segment
@@ -65,10 +74,13 @@ BINS_STOCK = [
     (0x00, 0x4000, 16384),
     (0x01, 0x4000, 16384),
     (0x02, 0x4000, 16384),
-    (0xF8, 0x5000, 12288),   # F8 seg offsets 0x1000-0x3FFF (above the loader)
+    (0xF8, 0x5000,  2048),   # loader-seg offsets 0x1000-0x17FF (0x1800+
+                             #   holds the save dance's EXOS-state stash)
     (0xFE, 0x5800,  8960),   # FE seg offsets 0x1800-0x3AFF (Z80 0x9800-0xBAFF:
-]                            #   above the 9 volume LUTs, below the stack)
+]                            #   above the volume LUT, below the stack)
 BINS_FULL = [(i, 0x4000, 16384) for i in range(8)]
+
+RATE_PERIODS = {0: PERIOD_FULL, 1: PERIOD_HALF, 2: PERIOD_QUARTER}
 
 
 def half_rate(data):
@@ -99,19 +111,19 @@ def pack(uniq, bins):
     return place, used
 
 
-def build_profile(raws, bins, half_set, demote):
-    """-> (rows[26], bin_bytes list, half_set actually used)"""
-    half_set = set(half_set)
+def build_profile(raws, bins, rate_of, demote):
+    """rate_of: {name: 0 full / 1 half / 2 quarter}.
+    -> (rows[26], bin_bytes list, rate_of actually used)"""
+    rate_of = dict(rate_of)
     demote = list(demote)
     while True:
         uniq = {}               # (data-key) -> padded bytes
         keyof = {}              # sample name -> (data-key, period, blocks)
         for name in NAMES:
             data = raws[name]
-            if name in half_set:
-                data, period = half_rate(data), PERIOD_HALF
-            else:
-                period = PERIOD_FULL
+            for _ in range(rate_of[name]):
+                data = half_rate(data)
+            period = RATE_PERIODS[rate_of[name]]
             key = (hash(data), len(data), period)
             # hash collisions: verify by content
             while key in uniq and uniq[key] != padded(data):
@@ -121,10 +133,12 @@ def build_profile(raws, bins, half_set, demote):
         place, used = pack(uniq, bins)
         if place is not None:
             break
+        while demote and rate_of[demote[0]] >= 2:
+            demote.pop(0)
         if not demote:
             sys.exit("gen_sfxep: profile does not fit and demote list is "
                      "exhausted")
-        half_set.add(demote.pop(0))
+        rate_of[demote[0]] += 1
 
     rows = []
     for name in NAMES:
@@ -136,21 +150,20 @@ def build_profile(raws, bins, half_set, demote):
                          blocks=blocks, period=period))
     bin_bytes = []
     for i in range(len(bins)):
-        buf = bytearray([PAD]) * 0
         buf = bytearray(used[i])
         for key, (b, off) in place.items():
             if b == i:
                 buf[off:off + len(uniq[key])] = uniq[key]
         bin_bytes.append(bytes(buf))
-    return rows, bin_bytes, half_set
+    return rows, bin_bytes, rate_of
 
 
-def verify(rows, bin_bytes, raws, half_used, bins):
+def verify(rows, bin_bytes, raws, rate_used, bins):
     """Re-read every sample from the packed bins and compare to source."""
     for row in rows:
         name = row["name"]
         want = raws[name]
-        if name in half_used:
+        for _ in range(rate_used[name]):
             want = half_rate(want)
         bin_idx = next(i for i, (c, w, _) in enumerate(bins)
                        if c == row["code"] and
@@ -166,12 +179,14 @@ def main():
     raws = {n: open(os.path.join(raw_dir, n + ".raw"), "rb").read()
             for n in NAMES}
 
-    rows1, bins1, half1 = build_profile(raws, BINS_STOCK,
-                                        set(NAMES) - FULL_RATE_STOCK,
+    rates1 = {n: (0 if n in FULL_RATE_STOCK else
+                  2 if n in QUARTER_RATE_STOCK else 1) for n in NAMES}
+    rows1, bins1, rate1 = build_profile(raws, BINS_STOCK, rates1,
                                         DEMOTE_ORDER)
-    rows2, bins2, half2 = build_profile(raws, BINS_FULL, set(), [])
-    verify(rows1, bins1, raws, half1, BINS_STOCK)
-    verify(rows2, bins2, raws, half2, BINS_FULL)
+    rows2, bins2, rate2 = build_profile(raws, BINS_FULL,
+                                        {n: 0 for n in NAMES}, [])
+    verify(rows1, bins1, raws, rate1, BINS_STOCK)
+    verify(rows2, bins2, raws, rate2, BINS_FULL)
 
     with open(os.path.join(out_dir, "DAGGOR1.SFX"), "wb") as f:
         for b in bins1:
@@ -193,14 +208,15 @@ def main():
                 "    uint8_t blocks;\n"
                 "    uint8_t period;\n"
                 "} sfx_ep_row_t;\n\n")
+        rate_tag = {PERIOD_FULL: "", PERIOD_HALF: " (half)",
+                    PERIOD_QUARTER: " (quarter)"}
         for pname, rows, nsegs in (("SFX1", rows1, 3), ("SFX2", rows2, 8)):
             f.write("#define %s_NSEGS %du\n" % (pname, nsegs))
             f.write("static const sfx_ep_row_t %s[SND_COUNT] = {\n" % pname)
             for r in rows:
-                f.write("    { 0x%02X, 0x%04X, %3u, %2u },  /* %s%s */\n"
+                f.write("    { 0x%02X, 0x%04X, %3u, %3u },  /* %s%s */\n"
                         % (r["code"], r["waddr"], r["blocks"], r["period"],
-                           r["name"],
-                           " (half)" if r["period"] == PERIOD_HALF else ""))
+                           r["name"], rate_tag[r["period"]]))
             f.write("};\n\n")
 
     with open(os.path.join(out_dir, "sfx_bins.inc"), "w") as f:
@@ -214,11 +230,11 @@ def main():
 
     tot1 = sum(len(b) for b in bins1)
     tot2 = sum(len(b) for b in bins2)
-    extra = sorted(half1 - (set(NAMES) - FULL_RATE_STOCK))
+    extra = sorted(n for n in NAMES if rate1[n] != rates1[n])
     print(f"DAGGOR1.SFX (stock): {tot1} bytes in "
           f"{[len(b) for b in bins1]}")
     if extra:
-        print(f"  demoted to half-rate to fit: {extra}")
+        print(f"  demoted a rate level to fit: {extra}")
     print(f"DAGGOR2.SFX (full):  {tot2} bytes in "
           f"{[len(b) for b in bins2]}")
 

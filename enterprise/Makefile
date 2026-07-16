@@ -14,7 +14,7 @@ CORE_SRC := $(wildcard $(CORE)/*.c)
 # fall back to the C DDA in plat_ep.c.  sound_ep.c = Dave DAC playback
 # (blobs + index from tools/gen_sfxep.py, loaded by loader.s).
 SRC      := main.c plat_ep.c sound_ep.c isr_ep.asm rng_z80.asm draw_ep.asm \
-            $(CORE_SRC)
+            dance_ep.asm $(CORE_SRC)
 
 # Bare crt0: the loader (not EXOS) places the 3 game segments and kills EXOS,
 # so the stock EXOS-integrated crt0 (opens VIDEO/KEYBOARD, forces FFh into
@@ -30,8 +30,8 @@ ZCCFLAGS := +enterprise -compiler=sdcc -subtype=com -crt0=$(CURDIR)/bare_crt0 \
 #     page 1 while executing, so it must never live there (isr_ep.asm goes
 #     in code_compiler right after plat_ep.c for exactly this reason);
 #   * BSS must end below 0x9700: the volume LUT lives at 0x9700-0x97FF
-#     and the FE-segment SFX bin at 0x9800-0xBAFF (gen_sfxep.py bakes those
-#     addresses into the blob layout; the stack starts at 0xBF00).
+#     and the FE-segment SFX bin at 0x9800-0xBAFF (gen_sfxep.py bakes
+#     those addresses into the blob layout; the stack starts at 0xBF00).
 daggorat.com: $(SRC) zpragma_ep.inc bare_crt0.asm sfx_index_ep.h
 	zcc $(ZCCFLAGS) $(SRC) -o daggorat -create-app -m
 	@ls -l daggorat.com 2>/dev/null || ls -l daggorat
@@ -41,6 +41,9 @@ daggorat.com: $(SRC) zpragma_ep.inc bare_crt0.asm sfx_index_ep.h
 	@BSS=$$(grep -E '^__BSS_END_tail\b' daggorat.map | sed -E 's/.*\$$([0-9a-fA-F]+).*/\1/'); \
 	 [ -n "$$BSS" ] && [ $$((0x$$BSS)) -le $$((0x9700)) ] \
 	   || { echo "ASSERT FAILED: BSS ends at 0x$$BSS, past the 0x9700 LUT slot" >&2; exit 1; }
+	@DST=$$(grep -E '^dance_stack_top\b' daggorat.map | sed -E 's/.*\$$([0-9a-fA-F]+).*/\1/'); \
+	 [ -n "$$DST" ] && [ $$((0x$$DST)) -lt 32768 ] \
+	   || { echo "ASSERT FAILED: dance stack at 0x$$DST is not in page 1" >&2; exit 1; }
 
 # SFX blobs + generated index/bin tables (bin-packed, 128-aligned; see
 # tools/gen_sfxep.py).  DAGGOR1.SFX = stock EP128, DAGGOR2.SFX = expanded.

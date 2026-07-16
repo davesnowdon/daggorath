@@ -90,6 +90,8 @@ alloc_loop:
     jr z, alloc_got
     cp 0x7F                            ; .SHARE?
     jr nz, alloc_done
+    ld (share_bound), de               ; EXOS boundary inside the shared
+                                       ; segment (gates the save stash)
     EXOS 25                            ; free it (C = segment)
     jr alloc_done
 alloc_got:
@@ -253,19 +255,56 @@ sfx_fail:
     EXOS 3                             ; close; profile stays 0 (silent)
 sfx_done:
 
-    ; ---- handoff block for sound_ep.c: profile, seg count, seg list,
-    ;      loader segment -> game page-0 segment at 0x00F0 ----
+    ; ---- saves feasible?  The dance restores segment-FF offsets
+    ;      0x1800-0x3FFF; if EXOS's shared-segment boundary sits BELOW
+    ;      0x1800 the stash would miss live EXOS state -> disable saves.
+    ;      (Boundary unmeasured - .SHARE never reached, e.g. expanded
+    ;      machines hitting the 16-segment cap - defaults to enabled:
+    ;      the boundary is an EXOS-version constant, 0x1806 on 2.1.) ----
+    ld a, 1
+    ld (exs_flag), a
+    ld hl, (share_bound)
+    ld a, h
+    or l
+    jr z, exs_decided
+    ld a, h
+    cp 0x18
+    jr nc, exs_decided
+    xor a
+    ld (exs_flag), a
+exs_decided:
+
+    ; ---- handoff block for the game: profile, seg count, seg list,
+    ;      loader segment, saves flag -> game page-0 segment at 0x00F0 ----
     ld a, SEG_P0
     out (PORT_P1), a
     ld hl, hand_block
     ld de, WIN + 0x00F0
-    ld bc, 11
+    ld bc, 12
     ldir
 
     ; ---- own the machine: EXOS is done, no more RST 30h ----
     di
     ld a, SEG_VID
-    out (PORT_P3), a                   ; FF into P3 (it already is; make it sure)
+    out (PORT_P3), a                   ; FF into P3.  NOT redundant: EXOS runs
+                                       ; the app with P3 = ROM segment 00 and
+                                       ; its system segment FF at P2 (probe
+                                       ; page map F8 F8 FF 00) - reading
+                                       ; 0xD800 before this OUT stashes ROM
+                                       ; bytes, which cost a debugging session
+
+    ; ---- EXOS-state stash (Phase 5 saves): copy the system segment's
+    ;      EXOS-owned region (FF seg offsets 0x1800-0x3FFF: channel RAM,
+    ;      variables, stack - everything the game's video will overwrite)
+    ;      into the SAME offsets of this loader's segment.  Done LAST,
+    ;      under DI, so the snapshot is the freshest EXOS state; the
+    ;      in-game save dance restores it around each file operation. ----
+    in a, (PORT_P0)
+    out (PORT_P1), a
+    ld hl, 0xD800                      ; FF now in P3
+    ld de, WIN + 0x1800
+    ld bc, 0x2800
+    ldir
 
     ; ---- copy the trampoline into FF@TRAMP_DST and run it there ----
     ld hl, tramp
@@ -316,16 +355,19 @@ sfx2_lens:                             ; full-profile bin lengths, file order
     dw SFX2_BIN0, SFX2_BIN1, SFX2_BIN2, SFX2_BIN3
     dw SFX2_BIN4, SFX2_BIN5, SFX2_BIN6, SFX2_BIN7
 
-; state + the 11-byte handoff block copied verbatim to game-P0 0x00F0:
+; state + the 12-byte handoff block copied verbatim to game-P0 0x00F0:
 ; [0] profile (0 silent / 1 stock / 2 full), [1] candidate count,
 ; [2..9] allocated bin segments, [10] the loader's own segment (the 0xF8
-; bin code in sfx_index_ep.h resolves to it).
+; bin code in sfx_index_ep.h resolves to it; also holds the save stash),
+; [11] saves flag (1 = EXOS-state stash valid, dance allowed).
 seg_cnt:    defb 0
 seg_list:   defs 16
+share_bound: defw 0
 hand_block:
 profile:    defb 0
 cand_cnt:   defb 0
 cand_list:  defs 8
 loader_seg: defb 0
+exs_flag:   defb 0
 
 codeEnd:
