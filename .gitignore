@@ -72,3 +72,10 @@ mega65/DAGGOR65.SFX
 mega65/sfx_index65.h
 mega65/daggorath.d81
 mega65/DAGGOR65.SAV
+
+# ep-probe harness artifacts (keep sources + run.sh)
+tests/ep-probe/*
+!tests/ep-probe/probe.c
+!tests/ep-probe/probe_asm.asm
+!tests/ep-probe/parse_dave.py
+!tests/ep-probe/run.sh
