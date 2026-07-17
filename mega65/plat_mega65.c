@@ -281,16 +281,37 @@ static const char SAVE_NAME[] = "DAGGOR65.SAV";
  * to the frozen core (player_cmds.c) and only reaches us as `len`. */
 #define SAVE_SLOT_BYTES 4096u
 
+/* Failed-save signal: the frozen core discards plat_save_state()'s
+ * status (ZLOAD reports via CMDERR; ZSAVE has no error path), so flash
+ * the border red - otherwise a missing/failed DAGGOR65.SAV looks like
+ * a good save. */
+static void save_fail_flash(void)
+{
+    uint8_t old = VICIV.bordercol;
+    uint8_t i;
+    for (i = 0; i < 3u; ++i) {
+        jiffy_t t0;
+        VICIV.bordercol = 2;               /* red */
+        t0 = plat_jiffies();
+        while ((jiffy_t)(plat_jiffies() - t0) < 12u) { }
+        VICIV.bordercol = old;
+        t0 = plat_jiffies();
+        while ((jiffy_t)(plat_jiffies() - t0) < 8u) { }
+    }
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
     const uint8_t *p = (const uint8_t *)buf;
     uint8_t fd;
     uint8_t ok = 1;
     if (len > SAVE_SLOT_BYTES) {
+        save_fail_flash();
         return PLAT_ERR_IO;
     }
     fd = open((char *)SAVE_NAME);
     if (fd == 0xFFu) {
+        save_fail_flash();
         return PLAT_ERR_IO;
     }
     while (len > 0 && ok) {
@@ -302,7 +323,11 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
         len = (uint16_t)(len > 512u ? len - 512u : 0u);
     }
     close(fd);
-    return ok ? PLAT_OK : PLAT_ERR_IO;
+    if (!ok) {
+        save_fail_flash();
+        return PLAT_ERR_IO;
+    }
+    return PLAT_OK;
 }
 
 extern uint8_t save_bounce[512];  /* absolute low RAM, layout.s */

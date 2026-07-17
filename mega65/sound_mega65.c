@@ -44,7 +44,10 @@
 #define CH0_CUR     0xD72Au  /* 24-bit current address (live pointer)  */
 
 static uint32_t sfx_addr[SFX_COUNT];  /* chip-RAM address per sample */
-static uint8_t  snd_ok;               /* blob loaded and placed      */
+uint8_t snd_ok;                       /* blob loaded and placed - non-
+                                       * static so it lands in the map
+                                       * and a monitor/harness can tell
+                                       * "no blob" from "sound bug"   */
 
 /* from plat_mega65.c; the framebuffer doubles as the load-time bounce
  * buffer - snd_load_blob() runs before the first draw and plat_init
@@ -82,6 +85,18 @@ static uint8_t place_samples(void)
     return 1;
 }
 
+/* Missing/unreadable blob cue: hold the border yellow ~1s so a broken
+ * install is distinguishable from deliberate silence.  Runs during
+ * plat_init with IRQs still masked, so busy-wait, not jiffies. */
+static void blob_missing_cue(void)
+{
+    volatile uint32_t n;
+    uint8_t old = PEEK(0xD020u);
+    POKE(0xD020u, 7);          /* yellow */
+    for (n = 0; n < 800000UL; ++n) { }
+    POKE(0xD020u, old);
+}
+
 void snd_load_blob(void)
 {
     uint8_t *buf = plat_init_bounce;
@@ -91,10 +106,12 @@ void snd_load_blob(void)
 
     fd = open(SFX_NAME);
     if (fd == 0xFFu) {
+        blob_missing_cue();
         return;                /* no blob on the SD: play silently */
     }
     if (!place_samples()) {
         close(fd);
+        blob_missing_cue();
         return;
     }
     for (;;) {
@@ -125,6 +142,9 @@ void snd_load_blob(void)
     }
     close(fd);
     snd_ok = (uint8_t)(pos == SFX_BLOB_LEN);
+    if (!snd_ok) {
+        blob_missing_cue();    /* short/corrupt blob */
+    }
     POKE(AUD_EN, 0x80);        /* audio DMA master enable */
 }
 

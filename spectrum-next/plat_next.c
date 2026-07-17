@@ -263,17 +263,39 @@ void plat_yield(void)
 /* ---- persistence: one esxDOS save slot next to the .nex ---------------- */
 static const char SAVE_NAME[] = "daggorath.sav";
 
+/* Failed-save signal: the frozen core discards plat_save_state()'s
+ * status (ZLOAD reports via CMDERR; ZSAVE has no error path), so flash
+ * the border red - otherwise a full/absent SD looks like a good save. */
+static void save_fail_flash(void)
+{
+    uint8_t i;
+    for (i = 0; i < 3u; ++i) {
+        jiffy_t t0;
+        zx_border(INK_RED);
+        t0 = plat_jiffies();
+        while ((jiffy_t)(plat_jiffies() - t0) < 12u) { }
+        zx_border(INK_BLACK);
+        t0 = plat_jiffies();
+        while ((jiffy_t)(plat_jiffies() - t0) < 8u) { }
+    }
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
     uint8_t h = esx_f_open(SAVE_NAME,
                            ESX_MODE_W | ESX_MODE_OPEN_CREAT_TRUNC);
     uint16_t n;
     if (h == 0xFFu) {
+        save_fail_flash();
         return PLAT_ERR_IO;
     }
     n = (uint16_t)esx_f_write(h, (void *)buf, len);
     esx_f_close(h);
-    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
+    if (n != len) {
+        save_fail_flash();
+        return PLAT_ERR_IO;
+    }
+    return PLAT_OK;
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)

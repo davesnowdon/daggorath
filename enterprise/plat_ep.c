@@ -533,6 +533,24 @@ static void ep_saves_init(void)
     ep_saves_ok = EP_HANDOFF[11];
 }
 
+/* Border helpers for the failed-save flash (port 81h is write-only;
+ * the game otherwise runs border-black from plat_init on). */
+static void ep_border_red(void)
+{
+    __asm
+        ld   a, #0x49               ; %GRBGRBGR: the three R bits
+        out  (0x81), a
+    __endasm;
+}
+
+static void ep_border_black(void)
+{
+    __asm
+        xor  a
+        out  (0x81), a
+    __endasm;
+}
+
 static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len)
 {
     if (!ep_saves_ok) {
@@ -564,6 +582,23 @@ static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len)
     plat_clear();
     ep_snd_reinit();
     __asm ei __endasm;
+
+    if (op == 0u && dance_status != 0u) {
+        /* The frozen core discards plat_save_state()'s status (ZLOAD
+         * reports via CMDERR; ZSAVE has no error path), so a failed
+         * save would be indistinguishable from a good one.  Flash the
+         * border red three times as our own signal. */
+        uint8_t i;
+        for (i = 0; i < 3u; ++i) {
+            jiffy_t t0;
+            ep_border_red();
+            t0 = plat_jiffies();
+            while ((jiffy_t)(plat_jiffies() - t0) < 12u) { }
+            ep_border_black();
+            t0 = plat_jiffies();
+            while ((jiffy_t)(plat_jiffies() - t0) < 8u) { }
+        }
+    }
 
     return (dance_status == 0) ? PLAT_OK : PLAT_ERR_IO;
 }

@@ -269,6 +269,36 @@ sfx_fail:
     EXOS 3                             ; close; profile stays 0 (silent)
 sfx_done:
 
+    ; ---- missing/unreadable SFX cue: profile 0 => hold the border
+    ;      yellow ~0.9s before continuing silent, so a broken install is
+    ;      distinguishable from deliberate quiet.  Set via BORD_VID
+    ;      (EXOS var 27) - the EXOS video ISR repaints the border every
+    ;      frame, so a raw port-81h write would last <20ms. ----
+    ld a, (profile)
+    or a
+    jr nz, sfx_cue_done
+    ld b, 1                            ; write EXOS variable
+    ld c, 27                           ; BORD_VID
+    ld d, 0xDB                         ; %GRBGRBGR: G+R bits = yellow
+    EXOS 16
+    ld bc, 2                           ; ~0.9s: 2 x 65536 x 26T @ 4MHz
+cue_wait_outer:
+    ld hl, 0
+cue_wait:
+    dec hl
+    ld a, h
+    or l
+    jr nz, cue_wait
+    dec bc
+    ld a, b
+    or c
+    jr nz, cue_wait_outer
+    ld b, 1
+    ld c, 27
+    ld d, 0                            ; back to black
+    EXOS 16
+sfx_cue_done:
+
     ; ---- saves feasible?  The dance restores segment-FF offsets
     ;      0x1800-0x3FFF; if EXOS's shared-segment boundary sits BELOW
     ;      0x1800 the stash would miss live EXOS state -> disable saves.

@@ -239,8 +239,20 @@ uint8_t plat_sound_playing(void)
     return snd_active;
 }
 
+/* Missing/unreadable blob cue: hold the border yellow ~1s so a broken
+ * install is distinguishable from deliberate silence.  Called during
+ * plat_init with interrupts still off, so busy-wait, not jiffies. */
+static void blob_missing_cue(void)
+{
+    volatile uint32_t i;
+    zx_border(INK_YELLOW);
+    for (i = 0; i < 1000000UL; ++i) { }
+    zx_border(INK_BLACK);
+}
+
 /* Load the blob into pages SFX_PAGE0.. through the MMU1 window.
- * Called from plat_init; failure just leaves the game silent. */
+ * Called from plat_init; failure leaves the game silent (with the
+ * yellow-border cue above as the only witness). */
 void snd_load_blob(void)
 {
     uint8_t h, page;
@@ -248,6 +260,7 @@ void snd_load_blob(void)
 
     h = esx_f_open(SFX_FILE, ESX_MODE_R | ESX_MODE_OPEN_EXIST);
     if (h == 0xFFu) {
+        blob_missing_cue();
         return;
     }
     page = SFX_PAGE0;
@@ -257,6 +270,9 @@ void snd_load_blob(void)
         ZXN_NEXTREGA(0x51, page);
         if ((uint16_t)esx_f_read(h, MMU1_WINDOW, n) != n) {
             esx_f_close(h);
+            ZXN_NEXTREG(0x51, 0xFF);  /* MMU1 back to ROM on the error
+                                       * path too */
+            blob_missing_cue();
             return;               /* short read: stay silent */
         }
         left -= n;
