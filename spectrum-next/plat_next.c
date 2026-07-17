@@ -215,8 +215,14 @@ void kbd_isr_scan(void)
                     a = 0x08;                /* CAPS+0 = delete */
                 }
                 if (a != 0u) {
-                    kq[kq_tail] = a;
-                    kq_tail = (uint8_t)((kq_tail + 1u) & 15u);
+                    /* full-queue guard: drop the NEWEST key rather than
+                     * advance tail onto head (which reads as "empty" and
+                     * silently discards the whole typed-ahead backlog) */
+                    uint8_t next = (uint8_t)((kq_tail + 1u) & 15u);
+                    if (next != kq_head) {
+                        kq[kq_tail] = a;
+                        kq_tail = next;
+                    }
                 }
             }
         }
