@@ -53,6 +53,8 @@ tests/z80draw-ep/*
 !tests/z80draw-ep/*.c
 !tests/z80draw-ep/*.asm
 !tests/z80draw-ep/run.sh
+tests/z80rng-ep/*
+!tests/z80rng-ep/run.sh
 tests/ep-scene/*
 !tests/ep-scene/*.py
 !tests/ep-scene/run.sh
