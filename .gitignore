@@ -97,4 +97,9 @@ tests/ep-save/*
 !tests/ep-save/fat12.py
 !tests/ep-save/verify_savbuf.py
 !tests/ep-save/run.sh
+
+# ep-loadfail harness artifacts (keep sources + run.sh)
+tests/ep-loadfail/*
+!tests/ep-loadfail/nick_border.py
+!tests/ep-loadfail/run.sh
 enterprise/daggorath-ep.img
