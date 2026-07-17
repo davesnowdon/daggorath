@@ -11,18 +11,22 @@ M65_DEST  ?= $(HOME)/retro-computing/mega65/daggorath
 EP_DEST   ?= $(HOME)/retro-computing/elan-enterprise/games/Daggorath
 
 # check-all harnesses: ordered cheap-first (pure-CPU identity tests,
-# then the emulator suites).  Each entry is dir:prerequisite-command.
+# then the emulator suites).  Each entry is dir:prerequisite-tag.
 HARNESSES := \
     z80draw:zcc z80rng:zcc z80scale:zcc z80draw-ep:zcc z80rng-ep:zcc \
-    ep-scene:ep128emu-check ep-sound:ep128emu-check ep-save:ep128emu-check \
-    ep-loadfail:ep128emu-check \
-    next-scene:zesarux-check next-sound:zesarux-check next-save:zesarux-check \
-    mega65-scene:xemu-check mega65-sound:xemu-check mega65-save:xemu-check
+    ep-scene:ep ep-sound:ep ep-save:ep ep-loadfail:ep \
+    next-scene:next next-sound:next next-save:next \
+    mega65-scene:m65 mega65-sound:m65 mega65-save:m65
 
+# Exported by NAME, dereferenced as $$VAR in the recipe: the expanded
+# emulator paths must NOT appear in the recipe's shell command line, or
+# the harnesses' own `pkill -f <emulator>` cleanup matches the make
+# shell (the path is in its argv) and kills the whole sweep.
 EP_EMU_BIN  ?= $(HOME)/retro-computing/elan-enterprise/emulators/ep128emu/ep128emu-2.0.11.2/ep128emu
 ZESARUX_BIN ?= $(HOME)/retro-computing/spectrum-next/emulators/ZEsarUX/zesarux/src/zesarux
 XEMU_BIN    ?= $(HOME)/retro-computing/mega65/emulators/xemu/build/bin/xmega65.native
 Z88DK_BIN   ?= $(HOME)/retro-computing/spectrum-next/dev/toolchains/z88dk/bin/zcc
+export EP_EMU_BIN ZESARUX_BIN XEMU_BIN Z88DK_BIN
 
 .PHONY: all desktop next mega65 enterprise check check-all release clean
 all: desktop next mega65 enterprise
@@ -47,10 +51,10 @@ check-all: check
 	for entry in $(HARNESSES); do \
 	    dir=$${entry%%:*}; kind=$${entry##*:}; \
 	    case $$kind in \
-	        zcc)            need="$(Z88DK_BIN)";; \
-	        ep128emu-check) need="$(EP_EMU_BIN)";; \
-	        zesarux-check)  need="$(ZESARUX_BIN)";; \
-	        xemu-check)     need="$(XEMU_BIN)";; \
+	        zcc)  need="$$Z88DK_BIN";; \
+	        ep)   need="$$EP_EMU_BIN";; \
+	        next) need="$$ZESARUX_BIN";; \
+	        m65)  need="$$XEMU_BIN";; \
 	    esac; \
 	    log=tests/check-logs/$$dir.log; \
 	    if [ ! -x "$$need" ]; then \
