@@ -87,9 +87,45 @@ def xcorr_best(win, ref):
     return float(np.max(np.abs(num[valid]) / en[valid]))
 
 
+def read_capture(path, raw_rate):
+    """WAV, or headerless RAW (unsigned 8-bit mono at raw_rate - the
+    ZEsarUX --aofile format, 15600 Hz)."""
+    with open(path, 'rb') as f:
+        magic = f.read(4)
+    if magic == b'RIFF':
+        return read_wav(path)
+    d = np.frombuffer(open(path, 'rb').read(), dtype=np.uint8)
+    a = (d.astype(np.float32) - 128) / 128.0
+    a -= a.mean()          # ZEsarUX's silence level is not 128: remove
+    return raw_rate, a     # the DC so the energy detector sees events
+
+
 def main():
-    wav_path, raw_dir = sys.argv[1], sys.argv[2]
-    rate, sig = read_wav(wav_path)
+    # analyze_wav.py <capture.wav|.raw> <raw-7350-dir>
+    #                [--input-rate N] [--label NAME]
+    args = [a for a in sys.argv[1:]]
+    raw_rate, label, skip_s = 15600, 'EP-SOUND', 0.0
+    if '--input-rate' in args:
+        i = args.index('--input-rate')
+        raw_rate = int(args[i + 1])
+        del args[i:i + 2]
+    if '--label' in args:
+        i = args.index('--label')
+        label = args[i + 1]
+        del args[i:i + 2]
+    if '--skip-seconds' in args:
+        # drop OS boot beeps / loader key clicks: they correlate > 0.5
+        # with the short percussive masters and would let a mute game
+        # pass on boot noise alone
+        i = args.index('--skip-seconds')
+        skip_s = float(args[i + 1])
+        del args[i:i + 2]
+    wav_path, raw_dir = args[0], args[1]
+    rate, sig = read_capture(wav_path, raw_rate)
+    if skip_s > 0:
+        n = int(skip_s * rate)
+        print(f'skipping first {skip_s:.0f}s ({n} samples) of boot noise')
+        sig = sig[n:]
     print(f'{wav_path}: {len(sig)} samples @ {rate} Hz '
           f'({len(sig)/rate:.1f}s)')
     x_new = np.arange(int(len(sig) * RATE / rate)) * (rate / RATE)
@@ -143,9 +179,9 @@ def main():
               f'{best_nm} r={best_r:.2f} (then {nm2} r={r2:.2f}) [{verdict}]')
 
     if matched >= 3:
-        print(f'EP-SOUND PASS ({matched} events matched sample masters)')
+        print(f'{label} PASS ({matched} events matched sample masters)')
         return 0
-    print('EP-SOUND FAIL (fewer than 3 events matched)')
+    print(f'{label} FAIL (fewer than 3 events matched)')
     return 1
 
 

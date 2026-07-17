@@ -59,6 +59,9 @@ tests/ep-scene/*
 !tests/ep-scene/*.py
 !tests/ep-scene/run.sh
 tests/next-scene/run/
+tests/next-sound/run/
+tests/next-save/runA/
+tests/next-save/runB/
 tests/ab_mos
 # Enterprise 64/128 build artifacts (loader + game image + emulator output)
 *.com
