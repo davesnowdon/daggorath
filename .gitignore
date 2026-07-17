@@ -62,6 +62,11 @@ tests/next-scene/run/
 tests/next-sound/run/
 tests/next-save/runA/
 tests/next-save/runB/
+tests/mega65-scene/run/
+tests/mega65-sound/run/
+tests/mega65-save/runA/
+tests/mega65-save/runB/
+tests/check-logs/
 tests/ab_mos
 # Enterprise 64/128 build artifacts (loader + game image + emulator output)
 *.com

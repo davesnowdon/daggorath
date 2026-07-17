@@ -9,6 +9,9 @@ xemu must be running with -uartmon SOCKET.  Usage:
                                        @sleep:N     wait N seconds
                                        @key:XX[,..] press matrix scancode(s)
                                        @type:TEXT   type TEXT (\\r = RETURN)
+  m65mon.py SOCKET dump ADDR LEN FILE  binary memory dump (28-bit hex
+                                       ADDR, M commands under the hood)
+  m65mon.py SOCKET fill ADDR LEN BYTE  fill memory (all args hex)
 
 Monitor crib: m/M ADDR (dump 16/256 bytes, 28-bit hex addr), s ADDR B..
 (set memory), g ADDR (set PC), r (registers), ~exit (quit xemu, fires
@@ -124,6 +127,46 @@ def inject(s, path):
     print("running from $%04X" % entry)
 
 
+def parse_hex_lines(reply):
+    """Bytes from a monitor m/M reply: each line's last ':'-field."""
+    out = bytearray()
+    for line in reply.splitlines():
+        line = line.strip()
+        if ":" not in line:
+            continue
+        hexs = line.split(":")[-1].strip().rstrip(".").strip()
+        try:
+            out += bytes.fromhex(hexs)
+        except ValueError:
+            continue
+    return bytes(out)
+
+
+def dump(s, addr, length, path):
+    """Binary memory dump via M commands (256 bytes each)."""
+    out = bytearray()
+    while len(out) < length:
+        got = parse_hex_lines(send(s, "M%x" % (addr + len(out))))
+        if not got:
+            sys.exit("dump: unparseable M reply at $%X" % (addr + len(out)))
+        out += got
+    with open(path, "wb") as f:
+        f.write(bytes(out[:length]))
+    print("%d bytes -> %s" % (length, path))
+
+
+def fill(s, addr, length, value):
+    """Fill memory via s commands (32 bytes each)."""
+    row = " ".join("%02x" % value for _ in range(32))
+    done = 0
+    while done < length:
+        n = min(32, length - done)
+        send(s, "s%x %s" % (addr + done,
+                            row if n == 32 else
+                            " ".join("%02x" % value for _ in range(n))))
+        done += n
+
+
 def run_cmds(s, cmds):
     for c in cmds:
         if c.startswith("@sleep:"):
@@ -151,6 +194,11 @@ def main():
         inject(s, sys.argv[3])
     elif mode == "cmd":
         run_cmds(s, sys.argv[3:])
+    elif mode == "dump":
+        dump(s, int(sys.argv[3], 16), int(sys.argv[4], 16), sys.argv[5])
+    elif mode == "fill":
+        fill(s, int(sys.argv[3], 16), int(sys.argv[4], 16),
+             int(sys.argv[5], 16))
     else:
         sys.exit(__doc__)
     s.close()
