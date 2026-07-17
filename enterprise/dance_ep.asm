@@ -68,6 +68,12 @@ _dance_run:
     ld   de, 0xC000
     ld   bc, 112
     ldir
+    ; The live LPT's LD1 tracks the double-buffer flip, so about half the
+    ; time it points at FB1 (0xD800) - exactly what step B floods with the
+    ; EXOS stash.  Force the parked copy's LD1 (visible record = record 0,
+    ; bytes +4/+5) to FB0 so the display is stale-but-stable either way.
+    ld   hl, 0xC000
+    ld   (0xC004), hl
     ld   a, 0x00                ; LPT base = Nick 0xC000
     out  (0x82), a
     ld   a, 0xCC

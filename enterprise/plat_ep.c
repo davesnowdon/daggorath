@@ -548,7 +548,14 @@ static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len)
     ep_build_lpt();
     ep_nick_lpt();
     draw_tables_reset();
-    plat_clear();                      /* FB1 (draw target) held EXOS state */
+    /* The rebuilt LPT shows FB0, so canonicalize the flip parity: FB1 (the
+     * buffer the stash landed in, whatever was hidden at entry) becomes the
+     * draw target and is cleared.  Without this, a dance entered with
+     * draw_base == FB0 would leave the game drawing into the visible buffer
+     * and publish EXOS garbage on the next present. */
+    draw_base = FB1_BASE;
+    ep_rebuild_row_addr();
+    plat_clear();
     ep_snd_reinit();
     __asm ei __endasm;
 

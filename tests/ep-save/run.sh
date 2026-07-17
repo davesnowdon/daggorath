@@ -63,52 +63,36 @@ for try in 1 2 3 4; do
 done
 [ -n "$SAVED" ] || { echo "EP-SAVE FAILED (no save file appeared)" >&2; exit 1; }
 snapshot snap_save.ep128s
-python3 - "$SAVBUF" <<'EOF'
-import struct, sys
-addr = int(sys.argv[1], 0)
-data = open('snap_save.ep128s','rb').read()
-pos = 16; segs = {}
-while pos + 12 <= len(data):
-    t, l = struct.unpack('>II', data[pos:pos+8])
-    body = data[pos+8:pos+8+l]; pos += 12 + l
-    if t == 0x45508002:
-        p = 8
-        while p + 2 + 16384 <= len(body):
-            s = body[p]; p += 2; segs[s] = body[p:p+16384]; p += 16384
-sav = open('saved.bin','rb').read()
-seg = 0xFC + (addr >> 14)
-buf = segs[seg][addr & 0x3FFF:(addr & 0x3FFF) + len(sav)]
-nd = sum(a != b for a, b in zip(sav, buf))
-print(f'   save file vs SAVBUF: {nd} differing bytes of {len(sav)}')
-raise SystemExit(0 if nd == 0 else 1)
-EOF
+python3 verify_savbuf.py snap_save.ep128s saved.bin "$SAVBUF"
+
+echo "== 2b. phase A2: second ZSAVE (opposite flip parity through the dance)"
+# LOOK forces a full redraw -> one plat_present -> the draw/front buffers
+# swap, so this save enters the EXOS dance with the other LPT/LD1 parity.
+DISPLAY="$XDISP" "$DEVTOOLS/xtype" "ep128emu" 'l\n' 80
+sleep 3
+SAVED2=""
+for try in 1 2 3 4; do
+    DISPLAY="$XDISP" "$DEVTOOLS/xtype" "ep128emu" 'zsave x\n' 80
+    sleep 5
+    snapshot snap_save2.ep128s
+    if python3 fat12.py run/disk.img DAGGOR.SAV saved2.bin 2>/dev/null \
+       && python3 verify_savbuf.py snap_save2.ep128s saved2.bin "$SAVBUF"; then
+        SAVED2=yes
+        echo "   second save (overwrite) round-trips (try $try)"
+        break
+    fi
+done
+[ -n "$SAVED2" ] || { echo "EP-SAVE FAILED (second save never matched)" >&2; exit 1; }
 
 echo "== 3. phase B: ZLOAD from a seeded save"
-cp saved.bin DAGGOR.SAV
+cp saved2.bin DAGGOR.SAV
 boot "$(pwd)/DAGGOR.SAV"
 LOADED=""
 for try in 1 2 3 4; do
     DISPLAY="$XDISP" "$DEVTOOLS/xtype" "ep128emu" 'zload x\n' 80
     sleep 5
     snapshot snap_load.ep128s
-    if python3 - "$SAVBUF" <<'EOF'
-import struct, sys
-addr = int(sys.argv[1], 0)
-data = open('snap_load.ep128s','rb').read()
-pos = 16; segs = {}
-while pos + 12 <= len(data):
-    t, l = struct.unpack('>II', data[pos:pos+8])
-    body = data[pos+8:pos+8+l]; pos += 12 + l
-    if t == 0x45508002:
-        p = 8
-        while p + 2 + 16384 <= len(body):
-            s = body[p]; p += 2; segs[s] = body[p:p+16384]; p += 16384
-sav = open('saved.bin','rb').read()
-seg = 0xFC + (addr >> 14)
-buf = segs[seg][addr & 0x3FFF:(addr & 0x3FFF) + len(sav)]
-raise SystemExit(0 if bytes(buf) == sav else 1)
-EOF
-    then
+    if python3 verify_savbuf.py snap_load.ep128s saved2.bin "$SAVBUF"; then
         LOADED=yes
         echo "   SAVBUF matches the seeded save (try $try)"
         break

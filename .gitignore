@@ -93,5 +93,6 @@ tests/ep-sound/*
 # ep-save harness artifacts (keep sources + run.sh)
 tests/ep-save/*
 !tests/ep-save/fat12.py
+!tests/ep-save/verify_savbuf.py
 !tests/ep-save/run.sh
 enterprise/daggorath-ep.img
