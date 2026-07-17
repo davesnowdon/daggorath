@@ -30,14 +30,16 @@ daggorath.d81: daggorath.prg ../tools/make_d81.py
 	python3 ../tools/make_d81.py $@ DAGGORATH daggorath.prg DAGGORATH
 
 # empty pre-sized save slot: hyppo's writefile can only overwrite an
-# existing file, so this goes in the SD FAT root beside the .sfx
+# existing file, so this goes in the SD FAT root beside the .sfx.
+# The 4096 here is SAVE_SLOT_BYTES in plat_mega65.c - the save path
+# refuses blobs bigger than the slot; grow both together.
 DAGGOR65.SAV:
 	dd if=/dev/zero of=$@ bs=4096 count=1 2>/dev/null
 
 .PHONY: clean run
 clean:
 	rm -f daggorath.prg daggorath.prg.elf daggorath.map daggorath.d81 \
-	      DAGGOR65.SFX sfx_index65.h
+	      DAGGOR65.SFX sfx_index65.h DAGGOR65.SAV
 
 # boot into xemu with the virtual SD (window opens; close it to stop)
 EMU := $(HOME)/retro-computing/mega65/emulators/xemu/build/bin/xmega65.native

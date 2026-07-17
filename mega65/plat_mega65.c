@@ -275,11 +275,21 @@ extern uint8_t write512(const uint8_t *buf);   /* hyppo_write.s */
 
 static const char SAVE_NAME[] = "DAGGOR65.SAV";
 
+/* The shipped slot file is exactly this big (Makefile dd rule); hyppo
+ * never grows a file, so a blob past this would silently truncate -
+ * refuse instead.  Checked at runtime because SAVE_BLOB_LEN is private
+ * to the frozen core (player_cmds.c) and only reaches us as `len`. */
+#define SAVE_SLOT_BYTES 4096u
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
     const uint8_t *p = (const uint8_t *)buf;
-    uint8_t fd = open((char *)SAVE_NAME);
+    uint8_t fd;
     uint8_t ok = 1;
+    if (len > SAVE_SLOT_BYTES) {
+        return PLAT_ERR_IO;
+    }
+    fd = open((char *)SAVE_NAME);
     if (fd == 0xFFu) {
         return PLAT_ERR_IO;
     }
@@ -301,8 +311,12 @@ uint8_t plat_load_state(void *buf, uint16_t len)
 {
     uint8_t *sec = save_bounce;   /* bounce for the final partial sector */
     uint8_t *p = (uint8_t *)buf;
-    uint8_t fd = open((char *)SAVE_NAME);
+    uint8_t fd;
     uint8_t ok = 1;
+    if (len > SAVE_SLOT_BYTES) {
+        return PLAT_ERR_IO;
+    }
+    fd = open((char *)SAVE_NAME);
     if (fd == 0xFFu) {
         return PLAT_ERR_IO;
     }
