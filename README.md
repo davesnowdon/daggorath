@@ -29,7 +29,7 @@ would otherwise spend 0.2-0.5 s per beat).
 | `mega65/` | llvm-mos backend → `daggorath.prg`/`.d81` + `DAGGOR65.SFX`/`.SAV` — **complete** (40 MHz, VIC-IV bitmap, Audio DMA w/ distance volume, hyppo saves; `m65mon.py` drives xemu) |
 | `enterprise/` | z88dk (zsdcc) + Z80 backend → `loader.com` + `game.bin` + `DAGGOR1/2.SFX` + `daggorath-ep.img` — **complete** (4 MHz, Nick LPIXEL double-buffer, plain-Z80 asm rasterizer + asm RNG, Dave 6-bit DAC PCM w/ LUT distance volume, IM1 jiffies, EXOS-dance saves) |
 | `tools/` | table generators (dual-source verified), golden generators, wav2raw, gen_sfxbin, gen_sfxep, make_d81, make_fat12 |
-| `tests/` | unit tests, module A/B, scenario goldens, coverage, `ab-mos`, z80 asm identity tests (`z80draw/`, `z80draw-ep/`, `z80scale/`, `z80rng/`), fixed-scene diffs (`next-scene/`, `mega65-scene/`, `ep-scene/`), EP sound/save/hardware checks (`ep-sound/`, `ep-save/`, `ep-probe/`) |
+| `tests/` | unit tests, module A/B, scenario goldens, coverage, `ab-mos`, z80 asm identity tests (`z80draw/`, `z80draw-ep/`, `z80scale/`, `z80rng/`, `z80rng-ep/`), fixed-scene diffs (`next-scene/`, `mega65-scene/`, `ep-scene/`), sound checks (`ep-sound/`, `next-sound/`, `mega65-sound/`), save round trips (`ep-save/`, `next-save/`, `mega65-save/`), loader negative paths (`ep-loadfail/`), the Dave probe (`ep-probe/`) |
 | `assets/` | PCM sound effects converted from the port's WAVs |
 | `docs/` | extraction conventions, wait-site audit, A/B protocol, platform notes |
 | `release/` | player-facing READMEs + command crib for `make release` |
@@ -58,6 +58,9 @@ of the port's vector font; ceiling-line ROM fix.
 ```sh
 make                # desktop + Next (.nex) + MEGA65 (.prg/.d81) + Enterprise (.img)
 make check          # the full gate: unit tests, module A/B, scenario goldens
+make check-all      # check + EVERY tests/*/run.sh harness (identity tests +
+                    # ep128emu/ZEsarUX/xemu scene/sound/save/loadfail suites;
+                    # skips loudly where a toolchain/emulator is absent)
 make release        # copy playable sets to the per-system folders
 ```
 
@@ -80,18 +83,20 @@ without it that diff is skipped with a warning (the rest of the gate
 still runs).  The z80 asm identity tests (`tests/z80draw/run.sh`,
 `tests/z80scale/run.sh`, `tests/z80rng/run.sh`) and `tests ab-mos`
 additionally need the Next and MEGA65 toolchains respectively
-(`tests/z80draw-ep/` reuses the Next toolchain under plain `-mz80`);
-emulator-based checks (`tests/next-scene/`, `tests/mega65-scene/`,
-`tests/ep-scene/`, `tests/ep-sound/`, `tests/ep-save/`) need
-ZEsarUX / xemu / ep128emu.
+(`tests/z80draw-ep/` and `tests/z80rng-ep/` reuse the Next toolchain
+under plain `-mz80`); the emulator harnesses need ZEsarUX
+(`next-scene/`, `next-sound/`, `next-save/`), xemu (`mega65-scene/`,
+`mega65-sound/`, `mega65-save/`) and ep128emu (`ep-scene/`,
+`ep-sound/`, `ep-save/`, `ep-loadfail/`, `ep-probe/`).  `make
+check-all` runs whatever is available and SKIPs the rest.
 
 Per-platform details (memory maps, hardware lessons, emulator
 automation): `docs/PLATFORM-NOTES-next.md`, `docs/PLATFORM-NOTES-mega65.md`,
 `docs/PLATFORM-NOTES-ep.md`; the verification story is
 `docs/ab-protocol.md`.  All three backends render the fixed reference
-scene pixel-identical to the desktop core (`tests/next-scene/`,
-`tests/mega65-scene/`, `tests/ep-scene/`), whose rasterizer is the
-verified VECTOR.ASM port.
+scene pixel-identical to the desktop core, round-trip their save
+files byte-exactly, and pass sound verification - each as a scripted
+`tests/*/run.sh` harness runnable via `make check-all`.
 
 ## Toolchains (Phase 0, all set up)
 

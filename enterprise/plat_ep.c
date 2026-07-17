@@ -1,18 +1,22 @@
-/* plat_ep.c - Enterprise 64/128 backend (Phase 1: video first light, all C).
+/* plat_ep.c - Enterprise 64/128 backend.
  *
- * Video    Nick 2-colour PIXEL mode, a LINEAR 256x192 1bpp framebuffer
- *          (32-byte stride, 8 px/byte, bit 7 = leftmost) in a video
- *          segment paged into Z80 page 3.  Single displayed buffer, so
- *          plat_present() is a no-op (visible line-by-line drawing is
- *          CoCo-authentic).  The C line rasterizer here must match
- *          core/draw_ref.c pixel for pixel; draw_ep.asm replaces it in
- *          Phase 3.
+ * Video    Nick 2-colour LPIXEL mode, a LINEAR 256x192 1bpp framebuffer
+ *          (32-byte stride, 8 px/byte, bit 7 = leftmost) in the FF video
+ *          segment paged into Z80 page 3.  DOUBLE buffered: the game
+ *          draws into the hidden bitmap and plat_present() flips the
+ *          LPT's LD1 pointer (details at the FB0/FB1 defines below).
+ *          Line rasterizer = draw_ep.asm, verified pixel-identical to
+ *          core/draw_ref.c by tests/z80draw-ep.
  * Input    port-B5h keyboard matrix, scanned from the frame ISR with edge
  *          detection into a lock-free ring (plat_poll_key drains it).
  * Timing   IM1 takeover.  The Nick video interrupt (50 Hz PAL) drives a
  *          +1,+1,+1,+1,+2 jiffy accumulator (isr_ep.asm) = true 60 Hz;
- *          plat_yield HALTs to the frame.
- * Sound    stubbed (Phase 4 = Dave DAC PCM).
+ *          plat_yield waits on the ISR's frame flag.
+ * Sound    sound_ep.c + isr_ep.asm: Dave DAC PCM, one 6-bit sample per
+ *          tone-0 interrupt, blob loaded by loader.s (handoff block at
+ *          0x00F0); verified by tests/ep-sound.
+ * Saves    the EXOS dance (dance_ep.asm + ep_dance below): EXOS revived
+ *          around channel I/O to A:DAGGOR.SAV; verified by tests/ep-save.
  *
  * Segment numbers are DISCOVERED at init (Nick sees only segments
  * FCh-FFh); nothing is hard-coded.  See docs / vault note 02 + 06.
@@ -77,14 +81,15 @@ void plat_clear(void)
 }
 
 /* The shipping rasterizer is draw_ep.asm (plain Z80, linear stride, solid
- * H/V fast paths), verified pixel-identical to core/draw_ref.c by
- * tests/z80draw-ep/run.sh under z88dk-ticks.  Build with -DDRAW_C_FALLBACK
- * to use the original C DDA below instead - kept compiled in as the
- * reference fallback. */
+ * H/V fast paths) - EXACTLY the VECTOR.ASM algorithm (24.8 fixed point,
+ * plot-candidate-then-step, endpoint never plotted, dot-period fades,
+ * x-clip on the integer high byte), verified pixel-identical to the
+ * normative core/draw_ref.c by tests/z80draw-ep/run.sh under
+ * z88dk-ticks.  (An untested C copy of the DDA lived here behind
+ * DRAW_C_FALLBACK until 2026-07-17; deleted as unverified drift risk -
+ * core/draw_ref.c IS the reference.) */
 extern void plat_draw_line_asm(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                                uint8_t vctfad, uint8_t flags);
-
-#ifndef DRAW_C_FALLBACK
 
 void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                     uint8_t vctfad, uint8_t flags)
@@ -92,76 +97,9 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     plat_draw_line_asm(x0, y0, x1, y1, vctfad, flags);
 }
 
-#else /* DRAW_C_FALLBACK */
-
-/* EXACTLY the VECTOR.ASM / core/draw_ref.c algorithm: 24.8 fixed point,
- * plot-candidate-then-step, endpoint never plotted, dot-period fades,
- * x-clip on the integer high byte.  Only the plot primitive differs from
- * draw_ref.c: bit-packed linear bytes instead of a byte-per-pixel map. */
-static const uint8_t bit_mask[8] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
-
-static int16_t incre(int16_t delta, uint16_t length)
-{
-    int32_t q = ((int32_t)(delta < 0 ? -delta : delta) << 8)
-                / (int32_t)length;
-    return (int16_t)(delta < 0 ? -q : q);
-}
-
-void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                    uint8_t vctfad, uint8_t flags)
-{
-    uint8_t period = (uint8_t)(vctfad + 1u);
-    uint8_t fadcnt;
-    int16_t dx, dy;
-    uint16_t adx, ady, length, i;
-    int32_t xx, yy, xinc, yinc;
-
-    if (period == 0) {            /* VCTFAD == 0xFF: invisible */
-        return;
-    }
-    fadcnt = period;
-
-    dx = (int16_t)(x1 - x0);
-    dy = (int16_t)(y1 - y0);
-    adx = (uint16_t)(dx < 0 ? -dx : dx);
-    ady = (uint16_t)(dy < 0 ? -dy : dy);
-    length = (ady < adx) ? adx : ady;
-    if (length == 0) {
-        return;
-    }
-
-    xinc = incre(dx, length);
-    yinc = incre(dy, length);
-
-    xx = ((int32_t)x0 << 8) | 0x80;   /* X0 + 0.5 */
-    yy = ((int32_t)y0 << 8) | 0x80;
-
-    for (i = length; i != 0; --i) {
-        --fadcnt;
-        if (fadcnt == 0) {
-            int16_t xi = (int16_t)(xx >> 8);
-            int16_t yi = (int16_t)(yy >> 8);
-            fadcnt = period;
-            if ((xi & (int16_t)0xFF00) == 0 &&
-                yi >= 0 && yi < 192) {
-                uint8_t *p = row_addr[yi] + ((uint8_t)xi >> 3);
-                uint8_t m = bit_mask[(uint8_t)xi & 7u];
-                if (flags & PLAT_LINE_INVERSE) {
-                    *p &= (uint8_t)~m;
-                } else {
-                    *p |= m;
-                }
-            }
-        }
-        xx += xinc;
-        yy += yinc;
-    }
-}
-
-#endif /* DRAW_C_FALLBACK */
-
+/* No bounds checks here or in plat_invert_region (unlike desktop/):
+ * callers are core/viewer_text.c grid arithmetic, whose col/row stay
+ * inside the 32x24 cell grid by construction. */
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
     uint8_t y = (uint8_t)(row << 3);

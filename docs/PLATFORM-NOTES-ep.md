@@ -91,19 +91,57 @@ resurrect EXOS around each file operation:
    LPT + draw tables + hidden buffer, re-arm Dave, EI.
 
 Jiffies pause during the window; the visible frame keeps showing minus a
-112-byte strip until the next repaint.  `tests/ep-save/run.sh` proves the
-round trip byte-exact.
+112-byte strip until the next repaint (the parked LPT copy's LD1 is
+forced to FB0 and the flip parity is canonicalized on exit, so this
+holds for BOTH double-buffer parities).  `tests/ep-save/run.sh` proves
+the round trip byte-exact - twice per run, at opposite parities.
+
+A failed ZSAVE flashes the border red 3x (the frozen core discards the
+save status; ZLOAD reports via CMDERR).  A missing/unreadable SFX blob
+holds the border yellow ~1s at boot, then the game runs silent.
+
+## Loader failure signals (border colour = raw EXOS status, then hang)
+
+The loader halts with DI + the EXOS status byte on port 81h (DI matters:
+EXOS's own ISR repaints the border every frame).  Codes seen in
+practice:
+
+| Border byte | Meaning |
+|---|---|
+| `0xCF` (bright green-ish) | GAME.BIN missing / open failed (EXDOS .NOFIL family) |
+| `0xE4` | GAME.BIN truncated - a read-block hit EOF (.EOF) |
+| `0xF7` | .NORAM - EXOS out of channel RAM (a held .SHARE grant?) |
+| anything else non-zero | look it up: EXOS fn 28 / kernel spec ch. 11 |
+
+## Known limitations
+
+- One save slot, fixed name `A:DAGGOR.SAV`, no volume identity check:
+  saving with the "wrong" disk in drive A silently writes to it
+  (EXDOS has no volume IDs to check).
+- SFX profile is chosen at boot only (stock 3-bin DAGGOR1 vs
+  expanded 8-bin DAGGOR2); hot-swapping disks after boot changes
+  nothing.
 
 ## Verification
 
 - `tests/z80draw-ep`: rasterizer identity vs core/draw_ref.c under
   z88dk-ticks `-mz80` (3303 lines, byte-exact; 14.9x vs compiled C).
+- `tests/z80rng-ep`: RNG identity for the shared rng_z80.asm under the
+  plain-Z80 EP toolchain flavour (the Next's z80n variant is covered by
+  tests/z80rng).
 - `tests/ep-scene`: attract-demo framebuffers byte-exact vs desktop
   goldens (quick-snapshot LPT-front extraction), + the 60.0 jiffies/s
   stopwatch - re-run green WITH sound playing.
 - `tests/ep-sound`: WAV capture cross-correlates with the sample
-  masters (both title-fade buzz ramps at r=0.67) + spectral rate check.
+  masters (both title-fade buzz ramps at r=0.67) + spectral rate check;
+  runs twice - stock/DAGGOR1 and 384K/DAGGOR2, asserting the loader's
+  profile byte from the handoff block.
 - `tests/ep-probe`: the Dave-chip characterization (re-run this on real
   hardware before trusting the sound constants there).
-- `tests/ep-save`: ZSAVE file == in-RAM blob; seeded-file ZLOAD
-  round-trips byte-exact on a fresh boot.
+- `tests/ep-save`: ZSAVE file == in-RAM blob (twice, opposite buffer
+  parities); seeded-file ZLOAD round-trips byte-exact on a fresh boot.
+- `tests/ep-loadfail`: missing and truncated GAME.BIN halt with the
+  error border (NICK_STATE-chunk assertion), never boot a partial
+  image.
+
+All of the above run from the repo root via `make check-all`.

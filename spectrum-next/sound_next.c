@@ -21,8 +21,9 @@
  * Covox volume tiers: the DAC has no level control, so volume is done
  * by scaling the PCM bytes on the CPU.  plat_sound_play quantizes the
  * core's 0..255 volume to 9 tiers of the desktop reference's
- * volume/255 midline gain: tier 8 (volume >= 224 - every full-volume
- * play and creature range 1) streams the original sample untouched;
+ * volume/255 midline gain: tier 8 (volume == 255 exactly, by
+ * tier=(v+1)>>5 - every full-volume play and creature range 1; 224-254
+ * land in tier 7 and DO get scaled) streams the sample untouched;
  * tiers 0-7 rebuild a 256-byte lookup table (gain tier*32/256) and
  * copy the sample through snd_scale_chunk (snd_scale.asm) into 3
  * bounce pages right after the blob, cached by (id, tier) so restarts

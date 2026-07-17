@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Pack the per-sound .raw files into one SFX blob + index header.
 
-The blob (daggorath.sfx) is loaded by the Next backend via esxDOS into
-consecutive 8K MMU pages; each sound is padded so it never spans more
-than adjacent pages loaded in order.  The generated header maps
-sound_ids.h order to (offset, length) within the blob.
+The blob (daggorath.sfx) is a straight concatenation - NO padding or
+alignment: samples may cross 8K-page boundaries at arbitrary offsets,
+and the players handle that (Next: dma_arm/scale_into_bounce chunking;
+MEGA65: place_samples() re-places each sample to dodge 64K crossings).
+The generated header maps sound_ids.h order to (offset, length) within
+the blob.
 
 usage: gen_sfxbin.py <raw-dir> <out-blob> <out-header> [rate]
 (rate defaults to 11025; the MEGA65 blob uses 7350 = 22050/3)

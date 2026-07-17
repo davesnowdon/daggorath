@@ -10,8 +10,7 @@ CORE_SRC := $(wildcard $(CORE)/*.c)
 # isr_ep.asm = IM1 jiffies + keyboard + PCM sample engine; rng_z80.asm =
 # RANDOM.ASM RNG (-DDOD_RNG_ASM, mandatory at 4 MHz); draw_ep.asm = the
 # line rasterizer (linear stride, solid H/V fast paths - proven
-# pixel-identical by tests/z80draw-ep).  Build with -DDRAW_C_FALLBACK to
-# fall back to the C DDA in plat_ep.c.  sound_ep.c = Dave DAC playback
+# pixel-identical by tests/z80draw-ep).  sound_ep.c = Dave DAC playback
 # (blobs + index from tools/gen_sfxep.py, loaded by loader.s).
 SRC      := main.c plat_ep.c sound_ep.c isr_ep.asm rng_z80.asm draw_ep.asm \
             dance_ep.asm $(CORE_SRC)

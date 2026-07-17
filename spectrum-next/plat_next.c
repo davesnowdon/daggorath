@@ -1,16 +1,19 @@
-/* plat_next.c - ZX Spectrum Next backend (first-light version: all C).
+/* plat_next.c - ZX Spectrum Next backend.
  *
- * Video    ULA 256x192 bitmap at 0x4000, drawn directly (single buffer;
- *          the bank-7 shadow flip comes with the asm rasterizer pass).
- *          The line rasterizer below must match core/draw_ref.c pixel
- *          for pixel - same DDA, only the plot primitive differs
- *          (bit-packed ULA bytes instead of a byte-per-pixel map).
- * Input    in_inkey() polled once per plat_poll_key with edge detection.
- * Timing   EI + HALT paces plat_yield to the 50 Hz frame interrupt; a
- *          +1,+1,+1,+1,+2 accumulator yields exactly 60 jiffies per 50
- *          frames.  (60 Hz display modes run ~20% fast for now; the
- *          polish pass reads the video-timing nextreg.)
- * Sound    stubbed - zxnDMA DAC playback is a later milestone.
+ * Video    ULA 256x192 bitmap; the game draws into bank 7's low page
+ *          (MMU2 window at 0x4000) and plat_present() flips it to the
+ *          visible bank 5.  Line rasterizer = draw_z80n.asm, verified
+ *          pixel-identical to core/draw_ref.c by tests/z80draw.
+ * Input    ISR matrix scan (kbd_isr_scan) with edge detection into a
+ *          16-slot ring; typed-ahead input survives CPU-bound stalls.
+ * Timing   IM2 frame ISR (isr.asm); a +1,+1,+1,+1,+2 accumulator
+ *          yields exactly 60 jiffies per 50 frames, and 60 Hz display
+ *          modes (REG_PERIPHERAL_1 rate bit, read at init) count 1:1.
+ * Sound    sound_next.c: the packed 7350 Hz blob esxDOS-loaded into
+ *          8K pages, played through zxnDMA -> Covox with a volume-LUT
+ *          scaling pass (snd_scale.asm); verified by tests/next-sound.
+ * Saves    plat_save/load_state via esxDOS (daggorath.sav); verified
+ *          byte-exact by tests/next-save.
  */
 #include <arch/zxn.h>
 #include <arch/zxn/esxdos.h>
@@ -33,18 +36,15 @@ void plat_clear(void)
     memset(ULA_BITMAP, 0, 6144);
 }
 
-/* EXACTLY the VECTOR.ASM algorithm - see core/draw_ref.c, the normative
- * reference.  24.8 fixed point, plot-candidate-then-step, endpoint never
- * plotted, dot-period fades, x-clip on the integer high byte.
- *
- * The shipping rasterizer is draw_z80n.asm (Z80n assembly, verified
- * pixel-identical to draw_ref by tests/z80draw/run.sh under
- * z88dk-ticks).  Build with -DDRAW_C_FALLBACK to use the original C
- * DDA below instead - kept compiled in as the reference fallback. */
+/* The shipping rasterizer is draw_z80n.asm - EXACTLY the VECTOR.ASM
+ * algorithm (24.8 fixed point, plot-candidate-then-step, endpoint
+ * never plotted, dot-period fades, x-clip on the integer high byte),
+ * verified pixel-identical to the normative core/draw_ref.c by
+ * tests/z80draw/run.sh under z88dk-ticks.  (An untested C copy of the
+ * DDA lived here behind DRAW_C_FALLBACK until 2026-07-17; deleted as
+ * unverified drift risk - core/draw_ref.c IS the reference.) */
 extern void plat_draw_line_asm(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                                uint8_t vctfad, uint8_t flags);
-
-#ifndef DRAW_C_FALLBACK
 
 void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                     uint8_t vctfad, uint8_t flags)
@@ -52,72 +52,9 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     plat_draw_line_asm(x0, y0, x1, y1, vctfad, flags);
 }
 
-#else /* DRAW_C_FALLBACK */
-
-static const uint8_t bit_mask[8] = {
-    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-};
-
-static int16_t incre(int16_t delta, uint16_t length)
-{
-    int32_t q = ((int32_t)(delta < 0 ? -delta : delta) << 8)
-                / (int32_t)length;
-    return (int16_t)(delta < 0 ? -q : q);
-}
-
-void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-                    uint8_t vctfad, uint8_t flags)
-{
-    uint8_t period = (uint8_t)(vctfad + 1u);
-    uint8_t fadcnt;
-    int16_t dx, dy;
-    uint16_t adx, ady, length, i;
-    int32_t xx, yy, xinc, yinc;
-
-    if (period == 0) {            /* VCTFAD == 0xFF: invisible */
-        return;
-    }
-    fadcnt = period;
-
-    dx = (int16_t)(x1 - x0);
-    dy = (int16_t)(y1 - y0);
-    adx = (uint16_t)(dx < 0 ? -dx : dx);
-    ady = (uint16_t)(dy < 0 ? -dy : dy);
-    length = (ady < adx) ? adx : ady;
-    if (length == 0) {
-        return;
-    }
-
-    xinc = incre(dx, length);
-    yinc = incre(dy, length);
-
-    xx = ((int32_t)x0 << 8) | 0x80;   /* X0 + 0.5 */
-    yy = ((int32_t)y0 << 8) | 0x80;
-
-    for (i = length; i != 0; --i) {
-        --fadcnt;
-        if (fadcnt == 0) {
-            int16_t xi = (int16_t)(xx >> 8);
-            int16_t yi = (int16_t)(yy >> 8);
-            fadcnt = period;
-            if ((xi & (int16_t)0xFF00) == 0 &&
-                yi >= 0 && yi < 192) {
-                uint8_t *p = row_addr[yi] + ((uint8_t)xi >> 3);
-                uint8_t m = bit_mask[(uint8_t)xi & 7u];
-                if (flags & PLAT_LINE_INVERSE) {
-                    *p &= (uint8_t)~m;
-                } else {
-                    *p |= m;
-                }
-            }
-        }
-        xx += xinc;
-        yy += yinc;
-    }
-}
-
-#endif /* DRAW_C_FALLBACK */
-
+/* No bounds checks here or in plat_invert_region (unlike desktop/):
+ * callers are core/viewer_text.c grid arithmetic, whose col/row stay
+ * inside the 32x24 cell grid by construction. */
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
     uint8_t y = (uint8_t)(row << 3);

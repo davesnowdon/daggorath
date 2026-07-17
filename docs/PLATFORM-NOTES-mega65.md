@@ -98,15 +98,22 @@ the mounted D81.
 2. Raster IRQ measured ~60 jiffies/s (PAL 6/5 accumulator).
 3. Classic opening lights the dungeon with correct distance-faded
    wireframe; status-line progression matches the desktop s2 golden.
-4. tests/mega65-scene: fixed start scene 0/8000 bytes vs desktop.
+4. tests/mega65-scene: fixed start scene 0/8000 bytes vs desktop -
+   scripted since 2026-07-17 (`./run.sh`, headless xemu + uartmon).
 5. Title buzz, heartbeat (both 25-byte heart samples alternating) and
-   creature sounds verified through the channel registers in xemu.
+   creature sounds verified through the channel registers in xemu -
+   automated as tests/mega65-sound (snd_ok, blob placement bytes,
+   channel-0 armed with the exact 7350 Hz phase step).
 6. Attract demo runs unattended (shield/sword/attack sequence).
 
 7. Save games (Phase 4): ZSAVE runs open/write512/close through
    hyppo's writefile trap (hyppo_write.s - the mirror of read512,
    overwrite-in-place of the pre-sized DAGGOR65.SAV); a ZLOAD
-   round-trip in xemu restored the saved torch-lit game.
+   round-trip in xemu restored the saved torch-lit game.  Automated as
+   tests/mega65-save (0xAA-poisoned round trip + cross-boot seeded
+   load, byte-exact).  A failed ZSAVE flashes the border red; a
+   missing/short DAGGOR65.SFX holds it yellow ~1s at startup (snd_ok
+   is map-visible for monitor diagnosis).
 8. Clock stopwatch (Phase 4): 3639 jiffies over 61.2 wall seconds in
    PAL xemu (59.4/s) and 59.94/s in NTSC mode (-videostd 1), i.e.
    both variants of the frame->jiffy conversion are right; the

@@ -102,16 +102,35 @@ platform-notes docs):
   plain-Z80 rasterizer (linear stride + solid H/V fast paths) vs
   core/draw_ref.c under z88dk-ticks `-mz80` - byte-identical over the
   Next corpus plus an EP-directed fast-path-edge category.
+- **z80rng-ep** (`tests/z80rng-ep/run.sh`): the shared rng_z80.asm
+  re-verified under the EP's plain `-mz80` flavour (no Z80n opcodes
+  can creep into the shared file unnoticed).
 - **Fixed-scene diffs** (`tests/next-scene/`, `tests/mega65-scene/`,
   `tests/ep-scene/`): the same deterministic demo rendered on each
   emulated target, compared byte-for-byte against the desktop shim's
   framebuffer (0 differing bytes on all three; the EP harness also
   stopwatches the jiffy clock at exactly 60.0/s, with sound playing).
-- **EP sound + saves** (`tests/ep-sound/`, `tests/ep-save/`): WAV
-  capture cross-correlated against the PCM masters (content + spectral
-  rate), and a byte-exact ZSAVE/ZLOAD round trip through the EXOS
-  dance.  `tests/ep-probe/` documents the Dave-chip measurements the
-  sound engine's constants rest on.
+  All three are scripted run.sh harnesses (ZRCP / uartmon / snapshot
+  driven).
+- **Sound** (`tests/ep-sound/`, `tests/next-sound/`,
+  `tests/mega65-sound/`): EP + Next captures cross-correlated against
+  the PCM masters (EP additionally re-runs on a 384K config to cover
+  the DAGGOR2 profile; Next skips OS boot noise so a mute game cannot
+  pass); the MEGA65's xemu has no audio capture, so its harness
+  asserts blob placement bytes + the armed Audio-DMA channel state
+  instead.  `tests/ep-probe/` documents the Dave-chip measurements the
+  EP engine's constants rest on.
+- **Saves** (`tests/ep-save/`, `tests/next-save/`,
+  `tests/mega65-save/`): byte-exact ZSAVE/ZLOAD round trips on all
+  three backends (EP: through the EXOS dance, at both double-buffer
+  parities; Next: against the host-dir esxDOS file; MEGA65: a
+  0xAA-poisoned in-memory round trip + cross-boot seeded load).
+- **Loader negative paths** (`tests/ep-loadfail/`): a missing or
+  truncated GAME.BIN must halt with the error border, never boot a
+  partial image.
+
+`make check-all` at the repo root runs every layer above that its
+installed toolchains/emulators allow, SKIPping the rest loudly.
 
 ## Bugs the protocol has caught
 

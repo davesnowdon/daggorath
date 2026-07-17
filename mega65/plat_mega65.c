@@ -186,7 +186,11 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 }
 
 /* A character cell is 8 consecutive bytes in this layout; only the 7
- * glyph scanlines are written (COMTXT.ASM deposits 7 bytes). */
+ * glyph scanlines are written (COMTXT.ASM deposits 7 bytes).
+ * No bounds checks here or in plat_invert_region (unlike desktop/):
+ * callers are core/viewer_text.c grid arithmetic, whose col/row stay
+ * inside the 32x24 cell grid by construction - fb ends flush against
+ * the program image, so an out-of-range row would corrupt code. */
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
     uint8_t *p = fb + ((uint16_t)row << 8) + ((uint16_t)col << 3);

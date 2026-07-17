@@ -63,6 +63,16 @@ in 8K MMU pages, not the main map.
    jiffy/frame at 60 Hz instead of the 6/5 pattern.
 5. **Save/load**: ZSAVE/ZLOAD -> `daggorath.sav` via esxDOS.
 
+## Automated harnesses (2026-07-17)
+
+Everything above is now re-runnable (see `make check-all` at the repo
+root): tests/next-scene (fixed-scene diff, scripted via ZRCP -
+zrcp.py), tests/next-save (byte-exact save/load round trip against the
+host-dir esxDOS file), tests/next-sound (--aofile RAW capture
+cross-correlated with the PCM masters; boot beeps skipped so a mute
+game can't pass on OS noise).  A failed ZSAVE now flashes the border
+red, and a missing daggorath.sfx holds it yellow ~1s at startup.
+
 ## Resolved in Phase 4
 
 - Fixed-scene diff vs the desktop shim: 0/6144 bytes differ
@@ -78,8 +88,9 @@ in 8K MMU pages, not the main map.
 
 The Covox has no level control, so volume is CPU-scaled:
 plat_sound_play quantizes the core's 0..255 volume to 9 tiers of the
-desktop's volume/255 midline gain.  Tier 8 (>= 224: all full-volume
-plays and creature range 1) streams the original sample; tiers 0-7
+desktop's volume/255 midline gain.  Tier 8 (volume == 255 exactly, by
+tier=(v+1)>>5: all full-volume plays and creature range 1 - volumes
+224-254 land in tier 7 and ARE scaled) streams the sample; tiers 0-7
 rebuild a 256-byte LUT (gain tier*32/256, at 0x5B00 in the draw-page
 tail after the rasterizer's tables) and copy the sample through
 snd_scale.asm (69 T/byte; worst case = the 22050-byte buzz, ~54 ms at
@@ -99,7 +110,8 @@ Verified three ways:
 2. ZEsarUX --aofile before/after: old build plays the title buzz flat
    at full level; new build ramps 0 -> full in tier steps and mirrors
    back down on the fade-out, kaboom level unchanged (tier-8 path is
-   byte-identical to the old code).
+   byte-identical to the old code).  (Now automated: tests/next-sound
+   cross-correlates the capture against the PCM masters.)
 3. make check green + fixed scene re-verified PIXEL-IDENTICAL on the
    new binary.
 
