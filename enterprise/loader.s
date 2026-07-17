@@ -97,7 +97,10 @@ alloc_loop:
 alloc_got:
     ld a, (seg_cnt)
     cp 16
-    jr nc, alloc_done
+    jr nc, alloc_loop                  ; list full: hold the grant anyway and
+                                       ; KEEP asking - stopping early on a big
+                                       ; expanded machine could leave FC/FD/FE
+                                       ; unreserved for EXDOS to grab mid-load
     ld e, a
     ld d, 0
     ld hl, seg_list
@@ -141,12 +144,17 @@ cand_done:
     jp nz, fail
 
     ; ---- read page 0 (game 0x0100-0x3FFF) into FC @ WIN+0x100 ----
+    ; Every read is status-checked: booting a partially-loaded image is
+    ; worse than halting with the error border (a truncated GAME.BIN or a
+    ; bad sector would otherwise "run" and crash unpredictably).
     ld a, SEG_P0
     out (PORT_P1), a
     ld a, 1
     ld de, WIN + 0x0100
     ld bc, GAME_P0LEN
     EXOS 6
+    or a
+    jp nz, fail
 
     ; ---- read page 1 (game 0x4000-0x7FFF) into FD @ WIN ----
     ld a, SEG_P1
@@ -155,6 +163,8 @@ cand_done:
     ld de, WIN
     ld bc, GAME_P1LEN
     EXOS 6
+    or a
+    jp nz, fail
 
     ; ---- read page 2 (game 0x8000..end) into FE @ WIN ----
     ld a, SEG_P2
@@ -163,10 +173,14 @@ cand_done:
     ld de, WIN
     ld bc, GAME_P2LEN
     EXOS 6
+    or a
+    jp nz, fail
 
     ; ---- close the file ----
     ld a, 1
     EXOS 3
+    or a
+    jp nz, fail
 
     ; ---- SFX blob (optional: any failure just leaves profile = 0) ----
     ; >= 8 spare segments: DAGGOR2.SFX, everything full-rate, 8 x 16K bins.
@@ -314,6 +328,9 @@ exs_decided:
     jp TRAMP_DST                       ; enter trampoline (running from P3/FF)
 
 fail:
+    di                                 ; EXOS's video ISR repaints the border
+                                       ; from BORD_VID every frame - without
+                                       ; DI the error colour lasts <20ms
     out (0x81), a                      ; border = the EXOS error status code
 fail_loop:
     jr fail_loop
