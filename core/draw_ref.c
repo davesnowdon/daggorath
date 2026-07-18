@@ -50,8 +50,11 @@ void draw_line_ref(uint8_t *fb,
     xinc = incre(dx, length);
     yinc = incre(dy, length);
 
-    xx = ((int32_t)x0 << 8) | 0x80;   /* X0 + 0.5 */
-    yy = ((int32_t)y0 << 8) | 0x80;
+    /* X0 + 0.5 in 24.8.  Multiply, not <<: x0/y0 go negative for
+     * off-screen endpoints (viewer_SCALE output) and left-shifting a
+     * negative value is UB - *256 is the same value, defined. */
+    xx = ((int32_t)x0 * 256) + 0x80;
+    yy = ((int32_t)y0 * 256) + 0x80;
 
     for (i = length; i != 0; --i) {
         --fadcnt;
