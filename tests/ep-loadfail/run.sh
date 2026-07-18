@@ -17,6 +17,15 @@ cd "$(dirname "$0")"
 PORT=$(cd ../.. && pwd)
 DEVTOOLS="$HOME/retro-computing/elan-enterprise/dev-tools"
 XDISP="${XDISP:-:2}"
+
+# Kill the emulator/Xephyr on ANY exit (incl. timeout/SIGTERM mid-run):
+# an orphaned ep128emu holding the run dir poisons later runs.  Bracket
+# pattern so the pkill never matches an ancestor shell's argv.
+cleanup_emu() {
+    pkill -9 -f 'ep128em[u]' 2>/dev/null || true
+    pkill -9 -f "Xephyr $XDISP" 2>/dev/null || true
+}
+trap cleanup_emu EXIT
 QS="$HOME/.ep128emu/qs_ep128.dat"
 
 echo "== 1. build"
