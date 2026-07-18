@@ -55,6 +55,11 @@ tests/z80draw-ep/*
 !tests/z80draw-ep/run.sh
 tests/z80rng-ep/*
 !tests/z80rng-ep/run.sh
+tests/mos-draw/*
+!tests/mos-draw/*.c
+!tests/mos-draw/run.sh
+!tests/mos-draw/stub/
+tests/ab_mos.elf
 tests/ep-scene/*
 !tests/ep-scene/*.py
 !tests/ep-scene/run.sh

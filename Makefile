@@ -14,6 +14,7 @@ EP_DEST   ?= $(HOME)/retro-computing/elan-enterprise/games/Daggorath
 # then the emulator suites).  Each entry is dir:prerequisite-tag.
 HARNESSES := \
     z80draw:zcc z80rng:zcc z80scale:zcc z80draw-ep:zcc z80rng-ep:zcc \
+    mos-draw:mos \
     ep-scene:ep ep-sound:ep ep-save:ep ep-loadfail:ep \
     next-scene:next next-sound:next next-save:next \
     mega65-scene:m65 mega65-sound:m65 mega65-save:m65
@@ -71,6 +72,7 @@ check-all: check check-parallel-build
 	    dir=$${entry%%:*}; kind=$${entry##*:}; \
 	    case $$kind in \
 	        zcc)  need="$$Z88DK_BIN";; \
+	        mos)  need="$$MOS_CC_BIN";; \
 	        ep)   need="$$EP_EMU_BIN";; \
 	        next) need="$$ZESARUX_BIN";; \
 	        m65)  need="$$XEMU_BIN";; \
