@@ -47,17 +47,16 @@
  * high byte changes - both buffers are 256-aligned). */
 uint8_t *draw_base = FB1_BASE;
 
-/* row_addr[y] = draw_base + y*32 (linear; kept as a table so the hot plot
- * path is one index, matching the Next backend's shape). */
-static uint8_t *row_addr[192];
+/* Text cell addressing: a text row is 8 scanlines x FB_STRIDE(32) = 256
+ * bytes, so cell (col,row) lives at base + row*256 + col and the glyph
+ * work is done by the draw_ep.asm helpers (7 scanline bytes, 32-byte
+ * stride).  No row_addr[] table: the asm reads nothing but its dest
+ * argument, so there is nothing to rebuild on buffer flips. */
+extern void ep_blit7(uint8_t *dest, const uint8_t *rows);  /* draw_ep.asm */
+extern void ep_xor7(uint8_t *dest, uint8_t ncols);         /* draw_ep.asm */
 
-static void ep_rebuild_row_addr(void)
-{
-    uint16_t y;
-    for (y = 0; y < 192u; ++y) {
-        row_addr[y] = draw_base + (y * FB_STRIDE);
-    }
-}
+#define CELL_ADDR(base, col, row) \
+    ((base) + ((uint16_t)(row) << 8) + (col))
 
 /* ---- video ------------------------------------------------------------- */
 /* Clear the HIDDEN bitmap (draw_base) with a discrete-write loop.  We
@@ -175,23 +174,12 @@ void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
  * inside the 32x24 cell grid by construction. */
 void plat_blit_glyph(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
-    uint8_t y = (uint8_t)(row << 3);
-    uint8_t k;
-    for (k = 0; k < 7u; ++k) {
-        *(row_addr[y + k] + col) = rows[k];
-    }
+    ep_blit7(CELL_ADDR(draw_base, col, row), rows);
 }
 
 void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
 {
-    uint8_t y = (uint8_t)(row << 3);
-    uint8_t k, c;
-    for (k = 0; k < 7u; ++k) {
-        uint8_t *p = row_addr[y + k] + col;
-        for (c = 0; c < ncols; ++c) {
-            p[c] ^= 0xFFu;
-        }
-    }
+    ep_xor7(CELL_ADDR(draw_base, col, row), ncols);
 }
 
 #ifdef DOD_HEART_STATUS_ONLY
@@ -203,24 +191,13 @@ void plat_invert_region(uint8_t col, uint8_t row, uint8_t ncols)
 void plat_blit_glyph_live(uint8_t col, uint8_t row, const uint8_t rows[7])
 {
     uint8_t *vbase = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
-    uint8_t y = (uint8_t)(row << 3);
-    uint8_t k;
-    for (k = 0; k < 7u; ++k) {
-        *(vbase + (uint16_t)(y + k) * FB_STRIDE + col) = rows[k];
-    }
+    ep_blit7(CELL_ADDR(vbase, col, row), rows);
 }
 
 void plat_invert_region_live(uint8_t col, uint8_t row, uint8_t ncols)
 {
     uint8_t *vbase = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
-    uint8_t y = (uint8_t)(row << 3);
-    uint8_t k, c;
-    for (k = 0; k < 7u; ++k) {
-        uint8_t *p = vbase + (uint16_t)(y + k) * FB_STRIDE + col;
-        for (c = 0; c < ncols; ++c) {
-            p[c] ^= 0xFFu;
-        }
-    }
+    ep_xor7(CELL_ADDR(vbase, col, row), ncols);
 }
 #endif
 
@@ -250,7 +227,6 @@ void plat_present(void)
     flip_wait_pending = 1;
 
     draw_base = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
-    ep_rebuild_row_addr();
 }
 
 /* Deferred flip-live wait (see plat_present).  The FRAME interrupt fires
@@ -558,10 +534,8 @@ void plat_init(void)
     /* Clear both buffers so neither shows EXOS/loader leftovers.  The LPT's
      * LD1 starts on FB0 (front); the game draws into FB1 (draw_base) first. */
     draw_base = FB0_BASE;
-    ep_rebuild_row_addr();
     plat_clear();
     draw_base = FB1_BASE;
-    ep_rebuild_row_addr();
     plat_clear();
 
     ep_build_lpt();
@@ -648,9 +622,11 @@ static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len)
      * buffer the stash landed in, whatever was hidden at entry) becomes the
      * draw target and is cleared.  Without this, a dance entered with
      * draw_base == FB0 would leave the game drawing into the visible buffer
-     * and publish EXOS garbage on the next present. */
+     * and publish EXOS garbage on the next present.  Any deferred flip wait
+     * is moot (the LPT was rebuilt from scratch) and MUST be cancelled:
+     * interrupts are still off here, so a pending wait's HALT would hang. */
+    flip_wait_pending = 0;
     draw_base = FB1_BASE;
-    ep_rebuild_row_addr();
     plat_clear();
     ep_snd_reinit();
     __asm ei __endasm;

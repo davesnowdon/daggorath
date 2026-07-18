@@ -6,7 +6,7 @@
 #ifdef EP_TEST_PATTERN
 /* Backend isolation probe: draw a known pattern spanning the full 256x192
  * via the platform primitives, then halt.  If this renders cleanly the
- * framebuffer/row_addr/Nick chain is correct and any in-game garbage is the
+ * framebuffer/cell-addressing/Nick chain is correct and any in-game garbage is the
  * game's own content/timing, not the backend. */
 static const uint8_t box_glyph[7] = {
     0xFF, 0x81, 0xBD, 0xA5, 0xBD, 0x81, 0xFF

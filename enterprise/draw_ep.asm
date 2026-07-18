@@ -956,6 +956,98 @@ sd_rowpg:
     ret
 
 ; ---------------------------------------------------------------------
+; text blit helpers.  The plat_ep.c wrappers compute dest = base +
+; row*256 + col (a text row is 8 scanlines x 32 bytes = 256, so the
+; cell address is a single high-byte add) and pick base = draw_base or
+; the visible buffer (the _live heartbeat variants).  ~2.5x the zsdcc
+; loops they replace; at ~160 glyph cells per 3D frame that is ~15ms
+; of every redraw at 4 MHz.
+; ---------------------------------------------------------------------
+PUBLIC _ep_blit7
+
+; void ep_blit7(uint8_t *dest, const uint8_t *rows)
+; Deposit 7 pre-shifted glyph scanline bytes at dest, 32-byte stride
+; (COMTXT.ASM TXTDPB shape; the 8th cell line keeps the background).
+; sdcccall(0): sp+2..3 dest, sp+4..5 rows.
+_ep_blit7:
+    ld   hl, 2
+    add  hl, sp
+    ld   e, (hl)
+    inc  hl
+    ld   d, (hl)                ; DE = dest
+    inc  hl
+    ld   a, (hl)
+    inc  hl
+    ld   h, (hl)
+    ld   l, a                   ; HL = rows
+    ex   de, hl                 ; HL = dest, DE = rows
+    ld   bc, 32                 ; linear row stride
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    inc  de
+    add  hl, bc
+    ld   a, (de)
+    ld   (hl), a
+    ret
+
+PUBLIC _ep_xor7
+
+; void ep_xor7(uint8_t *dest, uint8_t ncols)
+; XOR 0xFF over ncols contiguous cell columns for the 7 glyph
+; scanlines (inverse text / torch highlight).  ncols in 1..32; cell
+; bytes are contiguous within each 32-byte scanline row.
+; sdcccall(0): sp+2..3 dest, sp+4 ncols (uint8_t = one stack byte).
+_ep_xor7:
+    ld   hl, 2
+    add  hl, sp
+    ld   e, (hl)
+    inc  hl
+    ld   d, (hl)                ; DE = dest
+    inc  hl
+    ld   c, (hl)                ; C = ncols
+    ex   de, hl                 ; HL = dest
+    ld   d, 7                   ; scanline count
+xr7_row:
+    push hl
+    ld   b, c
+xr7_col:
+    ld   a, (hl)
+    cpl
+    ld   (hl), a
+    inc  hl
+    djnz xr7_col
+    pop  hl
+    ld   a, l
+    add  a, 32                  ; next scanline row
+    ld   l, a
+    jr   nc, xr7_nc
+    inc  h
+xr7_nc:
+    dec  d
+    jr   nz, xr7_row
+    ret
+
+; ---------------------------------------------------------------------
 ; helpers
 ; ---------------------------------------------------------------------
 
