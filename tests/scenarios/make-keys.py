@@ -110,4 +110,53 @@ events += [
 ]
 emit("s4-descent.keys", events)
 
+# s5: BEHAVIORAL save/load across processes (run-scenarios run_saveload).
+# Phase A plays and ZSAVEs mid-game, then keeps playing; phase B is a
+# FRESH process that ZLOADs the file and continues - proving restored
+# state actually plays on, not merely that the bytes round-tripped.
+# Phase C replays the load script against a checksum-corrupted copy:
+# the envelope must reject it (CMDERR) and the unloaded game plays on.
+emit("s5-save.keys", [
+    (100,  "|"),
+    (700,  "P R T|"),
+    (850,  "U R|"),
+    (1000, "P L SW|"),
+    (1200, "M|"),
+    (1400, "T L|"),
+    (1600, "M|"),
+    (1800, "ZS A|"),
+    (2000, "M|"),
+    (2200, "L|"),
+])
+emit("s5-load.keys", [
+    (100,  "|"),
+    (700,  "ZL A|"),
+    (1000, "L|"),
+    (1200, "E|"),
+    (1400, "M|"),
+    (1600, "T R|"),
+    (1800, "M|"),
+])
+
+# s5x: CROSS-LEVEL save - descend to level 2 (s4's route), ZSAVE there,
+# then s5-load.keys resumes it in a fresh start-level process (the
+# sanitizer gate runs this pair: the gameplay semantics of cross-level
+# load are inherited from the PC-Port reference; the smoke asserts no
+# crash/UB, not behavior).
+events = [
+    (100, "|"),
+    (500, "P R T|"),
+    (650, "U R|"),
+]
+jiffy = 850
+for cmd in ROUTE:
+    events.append((jiffy, cmd))
+    jiffy += 100
+events += [
+    (jiffy + 80,  "C D|"),
+    (jiffy + 600, "ZS A|"),
+    (jiffy + 800, "M|"),
+]
+emit("s5x-save.keys", events)
+
 print("done")

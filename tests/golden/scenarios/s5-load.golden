@@ -1,0 +1,1441 @@
+=== 0 t 0
+GAME lvl 0 aut 0 won 1 demoptr 0
+RNG 0766CB
+PLR r 16 c 11 d 0 pow 160 dam 0 mgo 0 mgd 0 pho 0 phd 0 heartr 46 heartf 255 faint 0
+HND l -1 r -1 bag 63 torch -1 wt 35 rlite 0 mlite 0 vlite 0,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 0
+T1 typ 1 dat -1 frq 1 due 0
+T2 typ 2 dat -1 frq 18 due 0
+T3 typ 3 dat -1 frq 0 due 0
+T4 typ 4 dat -1 frq 300 due 0
+T5 typ 5 dat -1 frq 18000 due 0
+T6 typ 6 dat 0 frq 186 due 0
+T7 typ 6 dat 1 frq 186 due 0
+T8 typ 6 dat 2 frq 174 due 0
+T9 typ 6 dat 3 frq 174 due 0
+T10 typ 6 dat 4 frq 174 due 0
+T11 typ 6 dat 5 frq 174 due 0
+T12 typ 6 dat 6 frq 90 due 0
+T13 typ 6 dat 7 frq 90 due 0
+T14 typ 6 dat 8 frq 90 due 0
+T15 typ 6 dat 9 frq 90 due 0
+T16 typ 6 dat 10 frq 90 due 0
+T17 typ 6 dat 11 frq 90 due 0
+T18 typ 6 dat 12 frq 90 due 0
+T19 typ 6 dat 13 frq 90 due 0
+T20 typ 6 dat 14 frq 90 due 0
+T21 typ 6 dat 15 frq 138 due 0
+T22 typ 6 dat 16 frq 138 due 0
+T23 typ 6 dat 17 frq 138 due 0
+T24 typ 6 dat 18 frq 138 due 0
+T25 typ 6 dat 19 frq 138 due 0
+T26 typ 6 dat 20 frq 138 due 0
+T27 typ 6 dat 21 frq 138 due 0
+T28 typ 6 dat 22 frq 138 due 0
+T29 typ 6 dat 23 frq 138 due 0
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr 64 own 1 rc 0,0 lvl 0 x 180,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 28,5 dir 0 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 23,18 dir 0 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 3,29 dir 0 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 11,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 24,12 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 17,4 dir 0 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 6,4 dir 0 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 4,6 dir 0 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 18,7 dir 0 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 6,8 dir 0 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 8,31 dir 0 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 10,28 dir 0 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 16,23 dir 0 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 8,20 dir 0 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 24,1 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 7,20 dir 0 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 12,9 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 19,6 dir 0 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 27,17 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,30 dir 0 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,10 dir 0 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 22,28 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 11,0 dir 0 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 7,6 dir 0 obj -1
+MAZ 3BE301B8
+STAT "EMPTY                      EMPTY"
+TXT0 "                                "
+TXT1 "                                "
+TXT2 "                                "
+TXT3 "                                "
+=== 1 t 258
+GAME lvl 0 aut 0 won 1 demoptr 0
+RNG 0766CB
+PLR r 16 c 11 d 0 pow 160 dam 0 mgo 0 mgd 0 pho 0 phd 0 heartr 46 heartf 255 faint 0
+HND l -1 r -1 bag 63 torch -1 wt 35 rlite 0 mlite 0 vlite 0,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due -258
+T3 typ 3 dat -1 frq 0 due -258
+T4 typ 4 dat -1 frq 300 due -258
+T5 typ 5 dat -1 frq 18000 due -258
+T6 typ 6 dat 0 frq 186 due -258
+T7 typ 6 dat 1 frq 186 due -258
+T8 typ 6 dat 2 frq 174 due -258
+T9 typ 6 dat 3 frq 174 due -258
+T10 typ 6 dat 4 frq 174 due -258
+T11 typ 6 dat 5 frq 174 due -258
+T12 typ 6 dat 6 frq 90 due -258
+T13 typ 6 dat 7 frq 90 due -258
+T14 typ 6 dat 8 frq 90 due -258
+T15 typ 6 dat 9 frq 90 due -258
+T16 typ 6 dat 10 frq 90 due -258
+T17 typ 6 dat 11 frq 90 due -258
+T18 typ 6 dat 12 frq 90 due -258
+T19 typ 6 dat 13 frq 90 due -258
+T20 typ 6 dat 14 frq 90 due -258
+T21 typ 6 dat 15 frq 138 due -258
+T22 typ 6 dat 16 frq 138 due -258
+T23 typ 6 dat 17 frq 138 due -258
+T24 typ 6 dat 18 frq 138 due -258
+T25 typ 6 dat 19 frq 138 due -258
+T26 typ 6 dat 20 frq 138 due -258
+T27 typ 6 dat 21 frq 138 due -258
+T28 typ 6 dat 22 frq 138 due -258
+T29 typ 6 dat 23 frq 138 due -258
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr 64 own 1 rc 0,0 lvl 0 x 180,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 28,5 dir 0 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 23,18 dir 0 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 3,29 dir 0 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 11,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 24,12 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 17,4 dir 0 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 6,4 dir 0 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 4,6 dir 0 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 18,7 dir 0 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 6,8 dir 0 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 8,31 dir 0 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 10,28 dir 0 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 16,23 dir 0 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 8,20 dir 0 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 24,1 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 7,20 dir 0 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 12,9 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 19,6 dir 0 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 27,17 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,30 dir 0 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,10 dir 0 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 22,28 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 11,0 dir 0 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 7,6 dir 0 obj -1
+MAZ 3BE301B8
+STAT "EMPTY          ##          EMPTY"
+TXT0 "                                "
+TXT1 ".                               "
+TXT2 "                                "
+TXT3 "                                "
+=== 2 t 0
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG 0766CB
+PLR r 16 c 11 d 0 pow 160 dam 0 mgo 0 mgd 0 pho 0 phd 0 heartr 46 heartf 255 faint 0
+HND l -1 r -1 bag 63 torch -1 wt 35 rlite 0 mlite 0 vlite 0,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 0
+T1 typ 1 dat -1 frq 1 due 0
+T2 typ 2 dat -1 frq 18 due 0
+T3 typ 3 dat -1 frq 0 due 0
+T4 typ 4 dat -1 frq 300 due 0
+T5 typ 5 dat -1 frq 18000 due 0
+T6 typ 6 dat 0 frq 186 due 0
+T7 typ 6 dat 1 frq 186 due 0
+T8 typ 6 dat 2 frq 174 due 0
+T9 typ 6 dat 3 frq 174 due 0
+T10 typ 6 dat 4 frq 174 due 0
+T11 typ 6 dat 5 frq 174 due 0
+T12 typ 6 dat 6 frq 90 due 0
+T13 typ 6 dat 7 frq 90 due 0
+T14 typ 6 dat 8 frq 90 due 0
+T15 typ 6 dat 9 frq 90 due 0
+T16 typ 6 dat 10 frq 90 due 0
+T17 typ 6 dat 11 frq 90 due 0
+T18 typ 6 dat 12 frq 90 due 0
+T19 typ 6 dat 13 frq 90 due 0
+T20 typ 6 dat 14 frq 90 due 0
+T21 typ 6 dat 15 frq 138 due 0
+T22 typ 6 dat 16 frq 138 due 0
+T23 typ 6 dat 17 frq 138 due 0
+T24 typ 6 dat 18 frq 138 due 0
+T25 typ 6 dat 19 frq 138 due 0
+T26 typ 6 dat 20 frq 138 due 0
+T27 typ 6 dat 21 frq 138 due 0
+T28 typ 6 dat 22 frq 138 due 0
+T29 typ 6 dat 23 frq 138 due 0
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr 64 own 1 rc 0,0 lvl 0 x 180,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 28,5 dir 0 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 23,18 dir 0 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 3,29 dir 0 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 11,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 24,12 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 17,4 dir 0 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 6,4 dir 0 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 4,6 dir 0 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 18,7 dir 0 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 6,8 dir 0 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 8,31 dir 0 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 10,28 dir 0 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 16,23 dir 0 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 8,20 dir 0 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 24,1 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 7,20 dir 0 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 12,9 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 19,6 dir 0 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 27,17 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,30 dir 0 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,10 dir 0 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 22,28 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 11,0 dir 0 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 7,6 dir 0 obj -1
+MAZ 3BE301B8
+STAT "EMPTY                      EMPTY"
+TXT0 "                                "
+TXT1 "                                "
+TXT2 "                                "
+TXT3 "                                "
+=== 3 t 700
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG 2AB289
+PLR r 15 c 11 d 3 pow 160 dam 14 mgo 0 mgd 0 pho 0 phd 0 heartr 36 heartf 254 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 255
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due 17
+T3 typ 3 dat -1 frq 0 due 9
+T4 typ 4 dat -1 frq 300 due 135
+T5 typ 5 dat -1 frq 18000 due 17835
+T6 typ 6 dat 0 frq 186 due 21
+T7 typ 6 dat 1 frq 186 due 21
+T8 typ 6 dat 2 frq 174 due 9
+T9 typ 6 dat 3 frq 174 due 9
+T10 typ 6 dat 4 frq 174 due 55
+T11 typ 6 dat 5 frq 174 due 101
+T12 typ 6 dat 6 frq 90 due 18
+T13 typ 6 dat 7 frq 90 due 18
+T14 typ 6 dat 8 frq 90 due 51
+T15 typ 6 dat 9 frq 90 due 52
+T16 typ 6 dat 10 frq 90 due 52
+T17 typ 6 dat 11 frq 90 due 52
+T18 typ 6 dat 12 frq 90 due 52
+T19 typ 6 dat 13 frq 90 due 52
+T20 typ 6 dat 14 frq 90 due 52
+T21 typ 6 dat 15 frq 138 due 100
+T22 typ 6 dat 16 frq 138 due 100
+T23 typ 6 dat 17 frq 138 due 100
+T24 typ 6 dat 18 frq 138 due 100
+T25 typ 6 dat 19 frq 138 due 100
+T26 typ 6 dat 20 frq 138 due 100
+T27 typ 6 dat 21 frq 138 due 100
+T28 typ 6 dat 22 frq 138 due 100
+T29 typ 6 dat 23 frq 138 due 100
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 177,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,3 dir 3 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 27,15 dir 2 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 3,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 3,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 20,9 dir 3 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 17,1 dir 2 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 7,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 13,4 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 23,7 dir 2 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 9,18 dir 1 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 7,31 dir 2 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 6,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 4,22 dir 3 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 16,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 21,10 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 0,18 dir 0 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 6,6 dir 3 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 19,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 26,15 dir 2 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,29 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,15 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,28 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 4,2 dir 1 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 6,14 dir 1 obj -1
+MAZ 3BE301B8
+STAT "EMPTY          ##          EMPTY"
+TXT0 "                                "
+TXT1 ".ZL A                           "
+TXT2 "                                "
+TXT3 "                                "
+=== 4 t 700
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG 2AB289
+PLR r 15 c 11 d 3 pow 160 dam 14 mgo 0 mgd 0 pho 0 phd 0 heartr 36 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due 17
+T3 typ 3 dat -1 frq 0 due 9
+T4 typ 4 dat -1 frq 300 due 135
+T5 typ 5 dat -1 frq 18000 due 17835
+T6 typ 6 dat 0 frq 186 due 21
+T7 typ 6 dat 1 frq 186 due 21
+T8 typ 6 dat 2 frq 174 due 9
+T9 typ 6 dat 3 frq 174 due 9
+T10 typ 6 dat 4 frq 174 due 55
+T11 typ 6 dat 5 frq 174 due 101
+T12 typ 6 dat 6 frq 90 due 18
+T13 typ 6 dat 7 frq 90 due 18
+T14 typ 6 dat 8 frq 90 due 51
+T15 typ 6 dat 9 frq 90 due 52
+T16 typ 6 dat 10 frq 90 due 52
+T17 typ 6 dat 11 frq 90 due 52
+T18 typ 6 dat 12 frq 90 due 52
+T19 typ 6 dat 13 frq 90 due 52
+T20 typ 6 dat 14 frq 90 due 52
+T21 typ 6 dat 15 frq 138 due 100
+T22 typ 6 dat 16 frq 138 due 100
+T23 typ 6 dat 17 frq 138 due 100
+T24 typ 6 dat 18 frq 138 due 100
+T25 typ 6 dat 19 frq 138 due 100
+T26 typ 6 dat 20 frq 138 due 100
+T27 typ 6 dat 21 frq 138 due 100
+T28 typ 6 dat 22 frq 138 due 100
+T29 typ 6 dat 23 frq 138 due 100
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 177,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,3 dir 3 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 27,15 dir 2 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 3,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 3,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 20,9 dir 3 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 17,1 dir 2 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 7,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 13,4 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 23,7 dir 2 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 9,18 dir 1 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 7,31 dir 2 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 6,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 4,22 dir 3 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 16,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 21,10 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 0,18 dir 0 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 6,6 dir 3 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 19,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 26,15 dir 2 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,29 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,15 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,28 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 4,2 dir 1 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 6,14 dir 1 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD               EMPTY"
+TXT0 "                                "
+TXT1 "                                "
+TXT2 "                                "
+TXT3 "                                "
+=== 5 t 1000
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG 72BEF2
+PLR r 15 c 11 d 3 pow 160 dam 14 mgo 0 mgd 0 pho 0 phd 0 heartr 36 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due 14
+T3 typ 3 dat -1 frq 0 due 32
+T4 typ 4 dat -1 frq 300 due 135
+T5 typ 5 dat -1 frq 18000 due 17535
+T6 typ 6 dat 0 frq 186 due 146
+T7 typ 6 dat 1 frq 186 due 146
+T8 typ 6 dat 2 frq 174 due 57
+T9 typ 6 dat 3 frq 174 due 57
+T10 typ 6 dat 4 frq 174 due 134
+T11 typ 6 dat 5 frq 174 due 149
+T12 typ 6 dat 6 frq 90 due 78
+T13 typ 6 dat 7 frq 90 due 45
+T14 typ 6 dat 8 frq 90 due 46
+T15 typ 6 dat 9 frq 90 due 46
+T16 typ 6 dat 10 frq 90 due 46
+T17 typ 6 dat 11 frq 90 due 46
+T18 typ 6 dat 12 frq 90 due 46
+T19 typ 6 dat 13 frq 90 due 46
+T20 typ 6 dat 14 frq 90 due 48
+T21 typ 6 dat 15 frq 138 due 97
+T22 typ 6 dat 16 frq 138 due 97
+T23 typ 6 dat 17 frq 138 due 97
+T24 typ 6 dat 18 frq 138 due 97
+T25 typ 6 dat 19 frq 138 due 97
+T26 typ 6 dat 20 frq 138 due 97
+T27 typ 6 dat 21 frq 138 due 97
+T28 typ 6 dat 22 frq 138 due 97
+T29 typ 6 dat 23 frq 138 due 97
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 176,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,1 dir 3 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 29,15 dir 2 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 5,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 1,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 20,7 dir 3 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 19,1 dir 2 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 11,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 16,4 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 26,7 dir 2 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 6,18 dir 0 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 10,31 dir 2 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 9,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 3,20 dir 0 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 19,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 18,10 dir 0 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 2,18 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 4,6 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 21,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 26,15 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 8,31 dir 1 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,13 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,28 dir 3 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 4,4 dir 1 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 7,15 dir 2 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 "                                "
+TXT1 ".L                              "
+TXT2 "                                "
+TXT3 "                                "
+=== 6 t 1200
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG 7EFB11
+PLR r 15 c 11 d 3 pow 160 dam 14 mgo 0 mgd 0 pho 0 phd 0 heartr 36 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due 12
+T3 typ 3 dat -1 frq 0 due 12
+T4 typ 4 dat -1 frq 300 due 235
+T5 typ 5 dat -1 frq 18000 due 17335
+T6 typ 6 dat 0 frq 186 due 132
+T7 typ 6 dat 1 frq 186 due 132
+T8 typ 6 dat 2 frq 174 due 42
+T9 typ 6 dat 3 frq 174 due 42
+T10 typ 6 dat 4 frq 174 due 108
+T11 typ 6 dat 5 frq 174 due 123
+T12 typ 6 dat 6 frq 90 due 66
+T13 typ 6 dat 7 frq 90 due 25
+T14 typ 6 dat 8 frq 90 due 26
+T15 typ 6 dat 9 frq 90 due 26
+T16 typ 6 dat 10 frq 90 due 26
+T17 typ 6 dat 11 frq 90 due 26
+T18 typ 6 dat 12 frq 90 due 26
+T19 typ 6 dat 13 frq 90 due 26
+T20 typ 6 dat 14 frq 90 due 64
+T21 typ 6 dat 15 frq 138 due 35
+T22 typ 6 dat 16 frq 138 due 35
+T23 typ 6 dat 17 frq 138 due 35
+T24 typ 6 dat 18 frq 138 due 35
+T25 typ 6 dat 19 frq 138 due 35
+T26 typ 6 dat 20 frq 138 due 35
+T27 typ 6 dat 21 frq 138 due 35
+T28 typ 6 dat 22 frq 138 due 35
+T29 typ 6 dat 23 frq 138 due 35
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 175,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,0 dir 3 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 29,14 dir 3 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 6,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 0,6 dir 0 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 19,7 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 19,2 dir 1 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 13,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 18,4 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 26,5 dir 3 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 4,18 dir 0 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 11,30 dir 3 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 11,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 1,20 dir 0 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 21,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 17,9 dir 3 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 3,18 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 3,6 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 22,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 25,15 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 9,31 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,12 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,27 dir 3 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 5,4 dir 2 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 8,15 dir 2 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 "                                "
+TXT1 ".L                              "
+TXT2 ".E                              "
+TXT3 "                                "
+=== 7 t 1417
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG F7789B
+PLR r 15 c 11 d 3 pow 160 dam 21 mgo 0 mgd 0 pho 0 phd 0 heartr 32 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due -16
+T2 typ 2 dat -1 frq 18 due -10
+T3 typ 3 dat -1 frq 0 due 8
+T4 typ 4 dat -1 frq 300 due 18
+T5 typ 5 dat -1 frq 18000 due 17118
+T6 typ 6 dat 0 frq 186 due 101
+T7 typ 6 dat 1 frq 186 due 101
+T8 typ 6 dat 2 frq 174 due -1
+T9 typ 6 dat 3 frq 174 due -1
+T10 typ 6 dat 4 frq 174 due 65
+T11 typ 6 dat 5 frq 174 due 80
+T12 typ 6 dat 6 frq 90 due 63
+T13 typ 6 dat 7 frq 90 due -12
+T14 typ 6 dat 8 frq 90 due -11
+T15 typ 6 dat 9 frq 90 due -11
+T16 typ 6 dat 10 frq 90 due -11
+T17 typ 6 dat 11 frq 90 due -11
+T18 typ 6 dat 12 frq 90 due -11
+T19 typ 6 dat 13 frq 90 due -11
+T20 typ 6 dat 14 frq 90 due 60
+T21 typ 6 dat 15 frq 138 due 109
+T22 typ 6 dat 16 frq 138 due 109
+T23 typ 6 dat 17 frq 138 due 109
+T24 typ 6 dat 18 frq 138 due 109
+T25 typ 6 dat 19 frq 138 due 109
+T26 typ 6 dat 20 frq 138 due 109
+T27 typ 6 dat 21 frq 138 due 109
+T28 typ 6 dat 22 frq 138 due 109
+T29 typ 6 dat 23 frq 138 due 109
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 175,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,0 dir 3 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 29,13 dir 3 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 7,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 0,5 dir 3 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 18,7 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 19,3 dir 1 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 15,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 20,4 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 26,3 dir 3 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 6,18 dir 2 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 11,28 dir 3 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 13,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 1,22 dir 1 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 23,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 17,7 dir 3 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 5,18 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 1,6 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 24,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 23,15 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 11,31 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,10 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,25 dir 3 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 7,4 dir 2 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 9,16 dir 1 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 "                                "
+TXT1 ".L                              "
+TXT2 ".E                              "
+TXT3 ".M                              "
+=== 8 t 1620
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG C0A491
+PLR r 15 c 11 d 0 pow 160 dam 21 mgo 0 mgd 0 pho 0 phd 0 heartr 32 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 1
+T2 typ 2 dat -1 frq 18 due -14
+T3 typ 3 dat -1 frq 0 due 0
+T4 typ 4 dat -1 frq 300 due 115
+T5 typ 5 dat -1 frq 18000 due 16915
+T6 typ 6 dat 0 frq 186 due 84
+T7 typ 6 dat 1 frq 186 due 84
+T8 typ 6 dat 2 frq 174 due -28
+T9 typ 6 dat 3 frq 174 due -28
+T10 typ 6 dat 4 frq 174 due 46
+T11 typ 6 dat 5 frq 174 due 51
+T12 typ 6 dat 6 frq 90 due 88
+T13 typ 6 dat 7 frq 90 due 89
+T14 typ 6 dat 8 frq 90 due 89
+T15 typ 6 dat 9 frq 90 due 89
+T16 typ 6 dat 10 frq 90 due 89
+T17 typ 6 dat 11 frq 90 due 89
+T18 typ 6 dat 12 frq 90 due 89
+T19 typ 6 dat 13 frq 90 due 89
+T20 typ 6 dat 14 frq 90 due 56
+T21 typ 6 dat 15 frq 138 due 44
+T22 typ 6 dat 16 frq 138 due 44
+T23 typ 6 dat 17 frq 138 due 44
+T24 typ 6 dat 18 frq 138 due 44
+T25 typ 6 dat 19 frq 138 due 44
+T26 typ 6 dat 20 frq 138 due 44
+T27 typ 6 dat 21 frq 138 due 44
+T28 typ 6 dat 22 frq 138 due 44
+T29 typ 6 dat 23 frq 138 due 44
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 174,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 23,1 dir 1 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 29,12 dir 3 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 8,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 0,4 dir 3 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 17,7 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 19,4 dir 1 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 17,4 dir 2 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 21,6 dir 1 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 26,0 dir 3 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 9,18 dir 2 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 11,25 dir 3 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 16,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 1,25 dir 1 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 26,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 17,5 dir 3 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 6,18 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 0,6 dir 0 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 25,1 dir 2 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 22,15 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 12,31 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 1,9 dir 3 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,24 dir 3 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 8,4 dir 2 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 9,17 dir 1 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 ".L                              "
+TXT1 ".E                              "
+TXT2 ".M                              "
+TXT3 ".T R                            "
+=== 9 t 1813
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG C2AF5F
+PLR r 14 c 11 d 0 pow 160 dam 28 mgo 0 mgd 0 pho 0 phd 0 heartr 29 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,0
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due 0
+T2 typ 2 dat -1 frq 18 due -13
+T3 typ 3 dat -1 frq 0 due -1
+T4 typ 4 dat -1 frq 300 due 222
+T5 typ 5 dat -1 frq 18000 due 16722
+T6 typ 6 dat 0 frq 186 due 77
+T7 typ 6 dat 1 frq 186 due 77
+T8 typ 6 dat 2 frq 174 due 155
+T9 typ 6 dat 3 frq 174 due 155
+T10 typ 6 dat 4 frq 174 due 27
+T11 typ 6 dat 5 frq 174 due 32
+T12 typ 6 dat 6 frq 90 due 87
+T13 typ 6 dat 7 frq 90 due 88
+T14 typ 6 dat 8 frq 90 due 88
+T15 typ 6 dat 9 frq 90 due 88
+T16 typ 6 dat 10 frq 90 due 88
+T17 typ 6 dat 11 frq 90 due 88
+T18 typ 6 dat 12 frq 90 due 88
+T19 typ 6 dat 13 frq 90 due 88
+T20 typ 6 dat 14 frq 90 due 55
+T21 typ 6 dat 15 frq 138 due 136
+T22 typ 6 dat 16 frq 138 due 136
+T23 typ 6 dat 17 frq 138 due 136
+T24 typ 6 dat 18 frq 138 due 136
+T25 typ 6 dat 19 frq 138 due 136
+T26 typ 6 dat 20 frq 138 due 136
+T27 typ 6 dat 21 frq 138 due 136
+T28 typ 6 dat 22 frq 138 due 136
+T29 typ 6 dat 23 frq 138 due 136
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 173,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 22,1 dir 0 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 29,11 dir 3 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 10,31 dir 2 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 0,2 dir 3 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 16,7 dir 0 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 18,4 dir 0 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 17,6 dir 1 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 20,7 dir 0 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 28,0 dir 2 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 11,18 dir 2 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 11,23 dir 3 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 18,31 dir 2 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 1,27 dir 1 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 28,17 dir 2 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 17,7 dir 1 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 8,18 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 0,4 dir 3 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 26,2 dir 1 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 20,15 dir 0 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 14,31 dir 2 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 2,8 dir 2 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 13,22 dir 3 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 10,4 dir 2 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 9,15 dir 3 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 ".E                              "
+TXT1 ".M                              "
+TXT2 ".T R                            "
+TXT3 ".M                              "
+=== 10 t 4514
+GAME lvl 0 aut 0 won 0 demoptr 0
+RNG A8403F
+PLR r 14 c 11 d 0 pow 160 dam 152 mgo 0 mgd 128 pho 0 phd 128 heartr 4 heartf 253 faint 0
+HND l 64 r -1 bag 63 torch 63 wt 35 rlite 0 mlite 0 vlite 7,0,7
+SCHED n 30 z 0
+T0 typ 0 dat -1 frq 1 due 1
+T1 typ 1 dat -1 frq 1 due -673
+T2 typ 2 dat -1 frq 18 due -659
+T3 typ 3 dat -1 frq 0 due -674
+T4 typ 4 dat -1 frq 300 due -377
+T5 typ 5 dat -1 frq 18000 due 14021
+T6 typ 6 dat 0 frq 186 due -491
+T7 typ 6 dat 1 frq 186 due -491
+T8 typ 6 dat 2 frq 174 due -503
+T9 typ 6 dat 3 frq 174 due -503
+T10 typ 6 dat 4 frq 174 due -503
+T11 typ 6 dat 5 frq 174 due -503
+T12 typ 6 dat 6 frq 90 due -592
+T13 typ 6 dat 7 frq 90 due -591
+T14 typ 6 dat 8 frq 90 due -591
+T15 typ 6 dat 9 frq 90 due -591
+T16 typ 6 dat 10 frq 90 due -591
+T17 typ 6 dat 11 frq 90 due -591
+T18 typ 6 dat 12 frq 90 due -591
+T19 typ 6 dat 13 frq 90 due -591
+T20 typ 6 dat 14 frq 90 due -591
+T21 typ 6 dat 15 frq 138 due -543
+T22 typ 6 dat 16 frq 138 due -542
+T23 typ 6 dat 17 frq 138 due -542
+T24 typ 6 dat 18 frq 138 due -542
+T25 typ 6 dat 19 frq 138 due -542
+T26 typ 6 dat 20 frq 138 due -542
+T27 typ 6 dat 21 frq 138 due -542
+T28 typ 6 dat 22 frq 138 due -541
+T29 typ 6 dat 23 frq 138 due -540
+OBJ 0 id 0 typ 1 ptr -1 own 255 rc 0,0 lvl 4 x 3,18,0
+OBJ 1 id 1 typ 1 ptr -1 own 255 rc 0,0 lvl 3 x 3,19,0
+OBJ 2 id 2 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 3 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 4 id 3 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 5 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 6 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 7 id 4 typ 2 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 8 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 9 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 10 id 5 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 11 id 6 typ 1 ptr -1 own 255 rc 0,0 lvl 1 x 3,20,0
+OBJ 12 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 13 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 14 id 7 typ 2 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 15 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 16 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 17 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 18 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 19 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 20 id 8 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 21 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 22 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 23 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 24 id 9 typ 0 ptr -1 own 255 rc 0,0 lvl 4 x 0,0,0
+OBJ 25 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 26 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 27 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 28 id 10 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 29 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 30 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 31 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 3 x 108,128,0
+OBJ 32 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 4 x 108,128,0
+OBJ 33 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 34 id 11 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 35 id 12 typ 1 ptr -1 own 255 rc 0,0 lvl 0 x 3,21,0
+OBJ 36 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 37 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 38 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 39 id 13 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 40 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 41 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 42 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 43 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 44 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 45 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 46 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 47 id 14 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 48 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 49 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 50 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 51 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 3 x 180,7,0
+OBJ 52 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 4 x 180,7,0
+OBJ 53 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 0 x 180,7,0
+OBJ 54 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 1 x 180,7,0
+OBJ 55 id 15 typ 5 ptr -1 own 255 rc 0,0 lvl 2 x 180,7,0
+OBJ 56 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 0 x 108,128,0
+OBJ 57 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 1 x 108,128,0
+OBJ 58 id 16 typ 3 ptr -1 own 255 rc 0,0 lvl 2 x 108,128,0
+OBJ 59 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 0 x 0,0,0
+OBJ 60 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 1 x 0,0,0
+OBJ 61 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 2 x 0,0,0
+OBJ 62 id 17 typ 4 ptr -1 own 255 rc 0,0 lvl 3 x 0,0,0
+OBJ 63 id 15 typ 5 ptr -1 own 1 rc 0,0 lvl 0 x 168,7,0
+OBJ 64 id 17 typ 4 ptr -1 own 1 rc 0,0 lvl 0 x 0,0,0
+CRE 0 id 3 pow 304 dam 0 rc 15,2 dir 1 obj 35
+CRE 1 id 3 pow 304 dam 0 rc 27,7 dir 0 obj 36
+CRE 2 id 2 pow 200 dam 0 rc 11,24 dir 3 obj 40
+CRE 3 id 2 pow 200 dam 0 rc 4,0 dir 3 obj 45
+CRE 4 id 2 pow 200 dam 0 rc 20,8 dir 1 obj 48
+CRE 5 id 2 pow 200 dam 0 rc 13,0 dir 0 obj 53
+CRE 6 id 1 pow 56 dam 0 rc 14,11 dir 0 obj 56
+CRE 7 id 1 pow 56 dam 0 rc 25,1 dir 2 obj 59
+CRE 8 id 1 pow 56 dam 0 rc 31,10 dir 1 obj -1
+CRE 9 id 1 pow 56 dam 0 rc 21,15 dir 2 obj -1
+CRE 10 id 1 pow 56 dam 0 rc 3,28 dir 1 obj -1
+CRE 11 id 1 pow 56 dam 0 rc 12,28 dir 0 obj -1
+CRE 12 id 1 pow 56 dam 0 rc 11,28 dir 2 obj -1
+CRE 13 id 1 pow 56 dam 0 rc 29,11 dir 1 obj -1
+CRE 14 id 1 pow 56 dam 0 rc 23,10 dir 1 obj -1
+CRE 15 id 0 pow 32 dam 0 rc 15,15 dir 2 obj -1
+CRE 16 id 0 pow 32 dam 0 rc 0,4 dir 1 obj -1
+CRE 17 id 0 pow 32 dam 0 rc 21,7 dir 0 obj -1
+CRE 18 id 0 pow 32 dam 0 rc 15,20 dir 1 obj -1
+CRE 19 id 0 pow 32 dam 0 rc 20,27 dir 3 obj -1
+CRE 20 id 0 pow 32 dam 0 rc 4,2 dir 2 obj -1
+CRE 21 id 0 pow 32 dam 0 rc 14,21 dir 0 obj -1
+CRE 22 id 0 pow 32 dam 0 rc 14,4 dir 0 obj -1
+CRE 23 id 0 pow 32 dam 0 rc 1,13 dir 3 obj -1
+MAZ 3BE301B8
+STAT "WOODEN SWORD   ##          EMPTY"
+TXT0 "                                "
+TXT1 "                                "
+TXT2 "                                "
+TXT3 "                                "
