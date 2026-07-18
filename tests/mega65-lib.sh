@@ -22,6 +22,8 @@ m65() {
     python3 "$M65MON" "$M65_SOCK" "$@"
 }
 
+M65_PID=""
+
 m65_boot() {
     local rundir="$1"
     M65_SOCK="$rundir/mon.sock"
@@ -43,6 +45,16 @@ m65_boot() {
     m65 inject "$M65_TESTS_DIR/../mega65/daggorath.prg"
 }
 
+# Kill OUR tracked child (TERM first, then KILL); the bracket-pattern
+# pkill remains only as a stray sweep for crashed earlier runs.
 m65_stop() {
+    if [ -n "$M65_PID" ]; then
+        kill -TERM "$M65_PID" 2>/dev/null || true
+        sleep 0.5
+        kill -9 "$M65_PID" 2>/dev/null || true
+        M65_PID=""
+    fi
     pkill -9 -f 'xmega65.nativ[e]' 2>/dev/null || true
 }
+
+trap m65_stop EXIT
