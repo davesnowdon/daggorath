@@ -19,6 +19,17 @@ checkpoints.  That cannot be byte-exact by construction:
 
 Instead, equivalence is layered so that every piece is exact:
 
+> **The frozen core and sanctioned maintenance edits.**  The core does
+> not change - with two exception classes.  (1) Guarded feature flags
+> (`DOD_RNG_ASM`, `DOD_HEART_STATUS_ONLY`), off by default, gate-proven
+> no-ops when off.  (2) **UB-removal edits**: rewriting undefined C into
+> defined C with the identical value on all supported targets, accepted
+> ONLY with the full gate re-proven byte-identical.  Precedent
+> (2026-07-18): `(x << 8) | 0x80` on negative coordinates ->
+> `(x * 256) + 0x80` in draw_ref.c after UBSan flagged it in normal
+> play; every identity test and golden stayed byte-exact.  The
+> sanitizer gate (below) exists to catch this class automatically.
+
 ## Layer 1 - module-level A/B (`make -C tests ab-modules`)
 
 The port's own C++ code, pasted **verbatim** into
@@ -126,11 +137,45 @@ platform-notes docs):
   parities; Next: against the host-dir esxDOS file; MEGA65: a
   0xAA-poisoned in-memory round trip + cross-boot seeded load).
 - **Loader negative paths** (`tests/ep-loadfail/`): a missing or
-  truncated GAME.BIN must halt with the error border, never boot a
-  partial image.
+  truncated GAME.BIN must halt with the error border (exact status
+  codes asserted), never boot a partial image.
+- **Sanitizers** (`tests/run-sanitize.sh`, part of `make check`): all
+  scenarios + a cross-level save/load pair under ASan+UBSan with
+  recovery disabled - UB that happens to produce the right bytes
+  cannot hide from this the way it can from golden diffs.
+- **Behavioral save/load** (s5 in `tests/run-scenarios.sh`): ZSAVE in
+  one process, ZLOAD + continued play in a FRESH process, and a
+  checksum-corrupted copy that must be rejected - all three phases
+  golden-gated.  The save-file envelope ["D" "S" ver flags len16
+  fletcher16] is validated by every backend; the payload stays the
+  compiler-ABI blob (per-machine saves; the scheduler is deliberately
+  not saved - the PC-Port reference's own semantics).
+- **Parallel build** (`make check-parallel-build`): forced -j rebuild
+  of every backend; guards the grouped-target generator rules.
 
 `make check-all` at the repo root runs every layer above that its
-installed toolchains/emulators allow, SKIPping the rest loudly.
+installed toolchains/emulators allow, SKIPping the rest loudly
+(ab-mos included).
+
+## External review triage (2026-07-18)
+
+A second, independently-produced review was verified claim-by-claim.
+Adopted: the UB-shift fix (above), MEGA65 final-sector bounce (28-byte
+BSS leak into the slot), EP LUT-rebuild-while-ISR-reads fix, grouped
+make targets, every gate-tightening above, the save envelope, SDL
+pitch/error handling, and the assumptions static-assert.  Rejected
+with evidence: "redesign persistence / scheduler not saved" (that is
+the PC-Port reference's own load semantics - `dodGame::LoadGame()`
+does no scheduler rebuild - and the dumps show CRTMOVE tasks exist for
+ALL creatures from boot, so no topology desync is possible); "MEGA65
+IRQ uses an undocumented stack layout" (it is the standard KERNAL
+$0314 A/X/Y contract); "deepen the state interfaces" (the shallow
+globals ARE the original architecture this protocol depends on);
+"parser ring overflow" (unreachable: feeders hold <= 16, the 32-slot
+ring is fully drained per PLAYER pass, and the A/B harness
+deliberately overflows it to prove byte-identity); "scheduler exit
+overwrite loses death" (death/win are detected from globals after the
+task loop, never via the overwritten result).
 
 ## Bugs the protocol has caught
 

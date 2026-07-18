@@ -1,9 +1,11 @@
 # Spectrum Next backend notes
 
-Status: **first playable** (all-C backend, verified in ZEsarUX 13.0).
-Full lifecycle confirmed on the emulated Next: title fade -> demo ->
-key abort -> real game -> classic opening commands -> creature combat
--> faint -> death fade -> key dismiss -> restart.
+Status: **complete** - asm rasterizer (draw_z80n.asm, 13.4x), asm RNG,
+IM2 ISR, zxnDMA Covox sound with volume tiers, esxDOS saves with the
+envelope header, verified in ZEsarUX 13.0 by the scripted harnesses
+(tests/next-scene / next-sound / next-save; `make check-all`).  The
+"first playable" milestone below stands as history; sections tagged
+(first-light) describe that baseline where later sections supersede it.
 
 ## Memory map (first-light layout)
 
@@ -33,14 +35,15 @@ in 8K MMU pages, not the main map.
   16-bit counter under DI.
 - **z88dk's `in_inkey()` was unreliable here** (and predates the IM1
   corruption being fixed); the backend scans the 8x5 matrix at port
-  0xFE directly with per-key edge detection and an 8-entry queue.
+  0xFE directly with per-key edge detection into a 16-slot ring
+  (drop-newest when full).
   CAPS+0 maps to backspace.  ZRCP's `send-keys-event` uses ASCII codes
   <128 and is the non-blocking way to inject keys when testing.
 - ZEsarUX automation: `--enable-remoteprotocol` (port 10000); useful
   commands: `read-memory <dec-addr> <len>`, `get-registers`,
   `evaluate IN(65278)`, `send-keys-ascii <ms> <codes...>` (blocks ZRCP
   for the duration), `send-keys-event <ascii> <1|0>`.  Addresses are
-  decimal.  `tools/../scratch zrcp.py`-style socket client beats nc.
+  decimal.  tests/next-scene/zrcp.py is the shared socket client.
 
 ## Resolved since first light
 
@@ -56,12 +59,23 @@ in 8K MMU pages, not the main map.
 3. **Z80n rasterizer** (`draw_z80n.asm`): 13.4x the zsdcc C version,
    proven pixel-identical to core/draw_ref.c over a 2716-line corpus
    run under z88dk-ticks (`tests/z80draw/run.sh`, must print Z80DRAW
-   IDENTICAL).  Build with `-DDRAW_C_FALLBACK` to swap the C DDA back
-   in.  PIXELAD/SETAE are deliberately NOT used: z88dk-ticks executes
+   IDENTICAL).  (The untested C-DDA fallback that lived behind
+   DRAW_C_FALLBACK was deleted 2026-07-17; core/draw_ref.c is the
+   reference.)  PIXELAD/SETAE are deliberately NOT used: z88dk-ticks executes
    them as NOPs, which would have blinded the verification.
 4. **50/60 Hz**: REG_PERIPHERAL_1 read at init; the ISR counts 1
    jiffy/frame at 60 Hz instead of the 6/5 pattern.
-5. **Save/load**: ZSAVE/ZLOAD -> `daggorath.sav` via esxDOS.
+5. **Save/load**: ZSAVE/ZLOAD -> `daggorath.sav` via esxDOS.  Since
+   2026-07-18 the file carries the 8-byte save envelope ["D" "S" ver
+   flags len16 fletcher16] validated on load - a truncated, corrupted
+   or different-build file is rejected (CMDERR) instead of restored as
+   garbage.  The payload stays the compiler-ABI struct dump, so saves
+   are per-machine by design (the scheduler is deliberately NOT saved:
+   that is the PC-Port reference's own semantics, mirrored).
+
+Expected zsdcc warnings on the core (faithful 8-bit arithmetic, NOT
+bugs to fix): `core/dungeon.c:40` constant-conversion overflow and
+`core/object.c:356` signed/unsigned comparison.
 
 ## Automated harnesses (2026-07-17)
 

@@ -111,7 +111,12 @@ the mounted D81.
    overwrite-in-place of the pre-sized DAGGOR65.SAV); a ZLOAD
    round-trip in xemu restored the saved torch-lit game.  Automated as
    tests/mega65-save (0xAA-poisoned round trip + cross-boot seeded
-   load, byte-exact).  A failed ZSAVE flashes the border red; a
+   load, byte-exact).  Since 2026-07-18 the slot carries the 8-byte
+   save envelope ["D" "S" ver flags len16 fletcher16] in sector 0
+   (header + first 504 payload bytes via the bounce); a truncated,
+   corrupted or different-build file is rejected (CMDERR), and the
+   final partial sector goes through the zeroed bounce so no stray BSS
+   bytes leak into the slot.  A failed ZSAVE flashes the border red; a
    missing/short DAGGOR65.SFX holds it yellow ~1s at startup (snd_ok
    is map-visible for monitor diagnosis).
 8. Clock stopwatch (Phase 4): 3639 jiffies over 61.2 wall seconds in

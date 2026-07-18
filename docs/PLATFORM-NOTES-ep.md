@@ -100,6 +100,14 @@ A failed ZSAVE flashes the border red 3x (the frozen core discards the
 save status; ZLOAD reports via CMDERR).  A missing/unreadable SFX blob
 holds the border yellow ~1s at boot, then the game runs silent.
 
+Since 2026-07-18 A:DAGGOR.SAV carries the 8-byte save envelope
+["D" "S" ver flags len16 fletcher16] (dance stages it at LDR_BUF,
+payload at LDR_BUF+8; plat_ep.c builds/validates it).  A truncated,
+corrupted or different-build file is rejected (CMDERR) instead of
+restored as garbage.  The payload stays the compiler-ABI struct dump -
+saves are per-machine by design, and the scheduler is deliberately NOT
+saved (the PC-Port reference's own semantics, mirrored).
+
 ## Loader failure signals (border colour = raw EXOS status, then hang)
 
 The loader halts with DI + the EXOS status byte on port 81h (DI matters:
