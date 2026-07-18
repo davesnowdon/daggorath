@@ -288,6 +288,10 @@ static const char SAVE_NAME[] = "DAGGOR65.SAV";
  * to the frozen core (player_cmds.c) and only reaches us as `len`. */
 #define SAVE_SLOT_BYTES 4096u
 
+extern uint8_t save_bounce[512];  /* absolute low RAM, layout.s - the
+                                   * partial-sector bounce for BOTH the
+                                   * save and load paths */
+
 /* Failed-save signal: the frozen core discards plat_save_state()'s
  * status (ZLOAD reports via CMDERR; ZSAVE has no error path), so flash
  * the border red - otherwise a missing/failed DAGGOR65.SAV looks like
@@ -321,13 +325,19 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
         save_fail_flash();
         return PLAT_ERR_IO;
     }
-    while (len > 0 && ok) {
-        /* always a full sector from the caller's buffer; the tail
-         * read-over on the last chunk is benign bank-0 RAM and load
-         * never reads those bytes back */
+    while (len >= 512u && ok) {
         ok = write512(p);
         p += 512;
-        len = (uint16_t)(len > 512u ? len - 512u : 0u);
+        len = (uint16_t)(len - 512u);
+    }
+    if (len > 0 && ok) {
+        /* final partial sector through the zeroed bounce (mirror of the
+         * load path): write512 always reads a full 512 bytes, and
+         * reading straight from the caller's tail would copy adjacent
+         * BSS bytes into the save slot */
+        memset(save_bounce, 0, 512);
+        memcpy(save_bounce, p, len);
+        ok = write512(save_bounce);
     }
     close(fd);
     if (!ok) {
@@ -336,8 +346,6 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
     }
     return PLAT_OK;
 }
-
-extern uint8_t save_bounce[512];  /* absolute low RAM, layout.s */
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
