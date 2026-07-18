@@ -175,13 +175,22 @@ void plat_present(void)
         return;
     }
     {
-        uint32_t *px;
+        uint8_t *base;
         int pitch;
         uint32_t on = opt.white ? 0xFFFFFFFFu : 0xFF33FF66u;
-        size_t i;
-        SDL_LockTexture(tex, NULL, (void **)&px, &pitch);
-        for (i = 0; i < sizeof fb; ++i) {
-            px[i] = fb[i] ? on : 0xFF000000u;
+        int x, y;
+        if (SDL_LockTexture(tex, NULL, (void **)&base, &pitch) != 0) {
+            fprintf(stderr, "SDL_LockTexture: %s\n", SDL_GetError());
+            return;
+        }
+        /* row by row via the returned pitch - SDL does not guarantee
+         * pitch == width * 4 */
+        for (y = 0; y < FB_HEIGHT; ++y) {
+            uint32_t *row = (uint32_t *)(base + (size_t)y * (size_t)pitch);
+            const uint8_t *src = fb + (size_t)y * FB_WIDTH;
+            for (x = 0; x < FB_WIDTH; ++x) {
+                row[x] = src[x] ? on : 0xFF000000u;
+            }
         }
         SDL_UnlockTexture(tex);
         SDL_RenderClear(ren);
@@ -541,14 +550,29 @@ static void load_sfx(const char *dir)
 void plat_init(void)
 {
     if (!opt.headless) {
-        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+            fprintf(stderr, "SDL_Init: %s\n", SDL_GetError());
+            exit(1);
+        }
         win = SDL_CreateWindow("Dungeons of Daggorath (core port)",
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                FB_WIDTH * WIN_SCALE, FB_HEIGHT * WIN_SCALE, 0);
+        if (!win) {
+            fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError());
+            exit(1);
+        }
         ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_PRESENTVSYNC);
+        if (!ren) {
+            fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
+            exit(1);
+        }
         tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
                                 SDL_TEXTUREACCESS_STREAMING,
                                 FB_WIDTH, FB_HEIGHT);
+        if (!tex) {
+            fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
+            exit(1);
+        }
         {
             SDL_AudioSpec want = {0};
             want.freq = SFX_RATE;
@@ -556,7 +580,13 @@ void plat_init(void)
             want.channels = 1;
             want.samples = 512;
             audio = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
-            SDL_PauseAudioDevice(audio, 0);
+            if (audio == 0) {
+                /* keep running silent - audio is not load-bearing */
+                fprintf(stderr, "SDL_OpenAudioDevice: %s (continuing "
+                        "without sound)\n", SDL_GetError());
+            } else {
+                SDL_PauseAudioDevice(audio, 0);
+            }
         }
     }
     start_ms = opt.headless ? 0 : SDL_GetTicks64();
