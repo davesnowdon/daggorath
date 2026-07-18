@@ -12,6 +12,18 @@
 #include <stdint.h>
 #include "platform.h"
 
+/* The core assumes two's-complement with ARITHMETIC right shift of
+ * negative signed values (implementation-defined in C99) - e.g.
+ * viewer_list.c's `prod >> 7` scaling.  Every supported compiler
+ * (gcc, zsdcc, llvm-mos) provides it; this check makes a future
+ * compiler that doesn't fail LOUDLY at build time instead of
+ * rendering garbage.  (parser.c's ASRD does NOT rely on it - it ORs
+ * the sign back per step, faithful to the 6809.) */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert((-1 >> 1) == -1, "arithmetic right shift required");
+_Static_assert((int16_t)0x8000u == -32768, "two's complement required");
+#endif
+
 typedef uint8_t  dodBYTE;
 typedef uint16_t dodSHORT;
 
