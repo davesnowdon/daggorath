@@ -322,26 +322,57 @@ void plat_yield(void)
     }
 }
 
+/* Save-file envelope: 8-byte header ["D" "S" ver flags len16 ck16] in
+ * front of the raw blob, validated on load - a truncated, corrupted or
+ * different-build file is rejected (PLAT_ERR_IO -> CMDERR) instead of
+ * restored as garbage state.  Same format on all backends; the payload
+ * remains the compiler-ABI struct dump, so saves stay per-machine. */
+#define SAVE_FMT_VER 1u
+
+static uint16_t save_fletcher16(const uint8_t *p, uint16_t n)
+{
+    uint16_t s1 = 0, s2 = 0, i;
+    for (i = 0; i < n; ++i) {
+        s1 = (uint16_t)((s1 + p[i]) % 255u);
+        s2 = (uint16_t)((s2 + s1) % 255u);
+    }
+    return (uint16_t)((s2 << 8) | s1);
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
     FILE *f;
     size_t n;
+    uint16_t ck;
+    uint8_t hdr[8];
     if (!opt.save_path) {
         return PLAT_ERR_UNSUPPORTED;
     }
+    ck = save_fletcher16((const uint8_t *)buf, len);
+    hdr[0] = 'D';
+    hdr[1] = 'S';
+    hdr[2] = SAVE_FMT_VER;
+    hdr[3] = 0;
+    hdr[4] = (uint8_t)(len & 0xFFu);
+    hdr[5] = (uint8_t)(len >> 8);
+    hdr[6] = (uint8_t)(ck & 0xFFu);
+    hdr[7] = (uint8_t)(ck >> 8);
     f = fopen(opt.save_path, "wb");
     if (!f) {
         return PLAT_ERR_IO;
     }
-    n = fwrite(buf, 1, len, f);
+    n = fwrite(hdr, 1, 8, f);
+    n += fwrite(buf, 1, len, f);
     fclose(f);
-    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
+    return (n == (size_t)len + 8) ? PLAT_OK : PLAT_ERR_IO;
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
     FILE *f;
     size_t n;
+    uint16_t ck;
+    uint8_t hdr[8];
     if (!opt.save_path) {
         return PLAT_ERR_UNSUPPORTED;
     }
@@ -349,9 +380,21 @@ uint8_t plat_load_state(void *buf, uint16_t len)
     if (!f) {
         return PLAT_ERR_IO;
     }
-    n = fread(buf, 1, len, f);
+    n = fread(hdr, 1, 8, f);
+    n += fread(buf, 1, len, f);
     fclose(f);
-    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
+    if (n != (size_t)len + 8) {
+        return PLAT_ERR_IO;
+    }
+    ck = save_fletcher16((const uint8_t *)buf, len);
+    if (hdr[0] != 'D' || hdr[1] != 'S' || hdr[2] != SAVE_FMT_VER ||
+        hdr[4] != (uint8_t)(len & 0xFFu) ||
+        hdr[5] != (uint8_t)(len >> 8) ||
+        hdr[6] != (uint8_t)(ck & 0xFFu) ||
+        hdr[7] != (uint8_t)(ck >> 8)) {
+        return PLAT_ERR_IO;
+    }
+    return PLAT_OK;
 }
 
 /* ---- command-boundary state dumps (--dump-state) ----------------------

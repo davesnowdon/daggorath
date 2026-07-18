@@ -217,18 +217,48 @@ static void save_fail_flash(void)
     }
 }
 
+/* Save-file envelope: 8-byte header ["D" "S" ver flags len16 ck16] in
+ * front of the raw blob, validated on load - a truncated, corrupted or
+ * different-build file is rejected (PLAT_ERR_IO -> CMDERR) instead of
+ * restored as garbage state.  Same format on all three backends. */
+#define SAVE_FMT_VER 1u
+
+static uint8_t save_hdr[8];
+
+static uint16_t save_fletcher16(const uint8_t *p, uint16_t n)
+{
+    uint16_t s1 = 0, s2 = 0, i;
+    for (i = 0; i < n; ++i) {
+        s1 += p[i];
+        if (s1 >= 255u) { s1 -= 255u; }
+        s2 += s1;
+        if (s2 >= 255u) { s2 -= 255u; }
+    }
+    return (uint16_t)((s2 << 8) | s1);
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
-    uint8_t h = esx_f_open(SAVE_NAME,
-                           ESX_MODE_W | ESX_MODE_OPEN_CREAT_TRUNC);
+    uint16_t ck = save_fletcher16((const uint8_t *)buf, len);
+    uint8_t h;
     uint16_t n;
+    save_hdr[0] = 'D';
+    save_hdr[1] = 'S';
+    save_hdr[2] = SAVE_FMT_VER;
+    save_hdr[3] = 0;
+    save_hdr[4] = (uint8_t)(len & 0xFFu);
+    save_hdr[5] = (uint8_t)(len >> 8);
+    save_hdr[6] = (uint8_t)(ck & 0xFFu);
+    save_hdr[7] = (uint8_t)(ck >> 8);
+    h = esx_f_open(SAVE_NAME, ESX_MODE_W | ESX_MODE_OPEN_CREAT_TRUNC);
     if (h == 0xFFu) {
         save_fail_flash();
         return PLAT_ERR_IO;
     }
-    n = (uint16_t)esx_f_write(h, (void *)buf, len);
+    n = (uint16_t)esx_f_write(h, save_hdr, 8);
+    n = (uint16_t)(n + esx_f_write(h, (void *)buf, len));
     esx_f_close(h);
-    if (n != len) {
+    if (n != (uint16_t)(len + 8u)) {
         save_fail_flash();
         return PLAT_ERR_IO;
     }
@@ -238,13 +268,26 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
     uint8_t h = esx_f_open(SAVE_NAME, ESX_MODE_R | ESX_MODE_OPEN_EXIST);
-    uint16_t n;
+    uint16_t n, ck;
     if (h == 0xFFu) {
         return PLAT_ERR_IO;
     }
-    n = (uint16_t)esx_f_read(h, buf, len);
+    n = (uint16_t)esx_f_read(h, save_hdr, 8);
+    n = (uint16_t)(n + esx_f_read(h, buf, len));
     esx_f_close(h);
-    return (n == len) ? PLAT_OK : PLAT_ERR_IO;
+    if (n != (uint16_t)(len + 8u)) {
+        return PLAT_ERR_IO;
+    }
+    ck = save_fletcher16((const uint8_t *)buf, len);
+    if (save_hdr[0] != 'D' || save_hdr[1] != 'S' ||
+        save_hdr[2] != SAVE_FMT_VER ||
+        save_hdr[4] != (uint8_t)(len & 0xFFu) ||
+        save_hdr[5] != (uint8_t)(len >> 8) ||
+        save_hdr[6] != (uint8_t)(ck & 0xFFu) ||
+        save_hdr[7] != (uint8_t)(ck >> 8)) {
+        return PLAT_ERR_IO;
+    }
+    return PLAT_OK;
 }
 
 /* ---- lifecycle ---------------------------------------------------------- */

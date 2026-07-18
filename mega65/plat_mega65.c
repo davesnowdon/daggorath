@@ -311,12 +311,35 @@ static void save_fail_flash(void)
     }
 }
 
+/* Save-file envelope: 8-byte header ["D" "S" ver flags len16 ck16] in
+ * front of the raw blob, validated on load - a truncated, corrupted or
+ * different-build file is rejected (PLAT_ERR_IO -> CMDERR) instead of
+ * restored as garbage state.  Same format on all three backends.
+ * Sector 0 = header + the first 504 payload bytes (via the bounce);
+ * the rest streams in full sectors with a bounced partial tail. */
+#define SAVE_FMT_VER 1u
+#define SAVE_HDR_LEN 8u
+#define SEC0_PAYLOAD (512u - SAVE_HDR_LEN)
+
+static uint16_t save_fletcher16(const uint8_t *p, uint16_t n)
+{
+    uint16_t s1 = 0, s2 = 0, i;
+    for (i = 0; i < n; ++i) {
+        s1 += p[i];
+        if (s1 >= 255u) { s1 -= 255u; }
+        s2 += s1;
+        if (s2 >= 255u) { s2 -= 255u; }
+    }
+    return (uint16_t)((s2 << 8) | s1);
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
     const uint8_t *p = (const uint8_t *)buf;
+    uint16_t ck, n0, rem;
     uint8_t fd;
-    uint8_t ok = 1;
-    if (len > SAVE_SLOT_BYTES) {
+    uint8_t ok;
+    if ((uint16_t)(len + SAVE_HDR_LEN) > SAVE_SLOT_BYTES) {
         save_fail_flash();
         return PLAT_ERR_IO;
     }
@@ -325,18 +348,32 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
         save_fail_flash();
         return PLAT_ERR_IO;
     }
-    while (len >= 512u && ok) {
+    ck = save_fletcher16(p, len);
+    memset(save_bounce, 0, 512);
+    save_bounce[0] = 'D';
+    save_bounce[1] = 'S';
+    save_bounce[2] = SAVE_FMT_VER;
+    save_bounce[3] = 0;
+    save_bounce[4] = (uint8_t)(len & 0xFFu);
+    save_bounce[5] = (uint8_t)(len >> 8);
+    save_bounce[6] = (uint8_t)(ck & 0xFFu);
+    save_bounce[7] = (uint8_t)(ck >> 8);
+    n0 = (len < SEC0_PAYLOAD) ? len : SEC0_PAYLOAD;
+    memcpy(save_bounce + SAVE_HDR_LEN, p, n0);
+    ok = write512(save_bounce);
+    p += n0;
+    rem = (uint16_t)(len - n0);
+    while (rem >= 512u && ok) {
         ok = write512(p);
         p += 512;
-        len = (uint16_t)(len - 512u);
+        rem = (uint16_t)(rem - 512u);
     }
-    if (len > 0 && ok) {
-        /* final partial sector through the zeroed bounce (mirror of the
-         * load path): write512 always reads a full 512 bytes, and
-         * reading straight from the caller's tail would copy adjacent
-         * BSS bytes into the save slot */
+    if (rem > 0 && ok) {
+        /* partial tail through the zeroed bounce: write512 always
+         * reads a full 512 bytes, and reading straight from the
+         * caller's tail would copy adjacent BSS into the slot */
         memset(save_bounce, 0, 512);
-        memcpy(save_bounce, p, len);
+        memcpy(save_bounce, p, rem);
         ok = write512(save_bounce);
     }
     close(fd);
@@ -349,25 +386,42 @@ uint8_t plat_save_state(const void *buf, uint16_t len)
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    uint8_t *sec = save_bounce;   /* bounce for the final partial sector */
     uint8_t *p = (uint8_t *)buf;
+    uint16_t ck, n0, rem;
     uint8_t fd;
-    uint8_t ok = 1;
-    if (len > SAVE_SLOT_BYTES) {
+    uint8_t ok;
+    if ((uint16_t)(len + SAVE_HDR_LEN) > SAVE_SLOT_BYTES) {
         return PLAT_ERR_IO;
     }
     fd = open((char *)SAVE_NAME);
     if (fd == 0xFFu) {
         return PLAT_ERR_IO;
     }
-    while (len >= 512u && ok) {
-        ok = (read512(p) == 512u);
-        p += 512;
-        len = (uint16_t)(len - 512u);
+    ok = (read512(save_bounce) >= SAVE_HDR_LEN);
+    if (ok && (save_bounce[0] != 'D' || save_bounce[1] != 'S' ||
+               save_bounce[2] != SAVE_FMT_VER ||
+               save_bounce[4] != (uint8_t)(len & 0xFFu) ||
+               save_bounce[5] != (uint8_t)(len >> 8))) {
+        ok = 0;                   /* wrong magic/version/length */
     }
-    if (len > 0 && ok) {          /* read512 always writes 512 bytes */
-        ok = (read512(sec) >= len);
-        memcpy(p, sec, len);
+    if (ok) {
+        n0 = (len < SEC0_PAYLOAD) ? len : SEC0_PAYLOAD;
+        memcpy(p, save_bounce + SAVE_HDR_LEN, n0);
+        ck = (uint16_t)(save_bounce[6] | ((uint16_t)save_bounce[7] << 8));
+        p += n0;
+        rem = (uint16_t)(len - n0);
+        while (rem >= 512u && ok) {
+            ok = (read512(p) == 512u);
+            p += 512;
+            rem = (uint16_t)(rem - 512u);
+        }
+        if (rem > 0 && ok) {      /* read512 always writes 512 bytes */
+            ok = (read512(save_bounce) >= rem);
+            memcpy(p, save_bounce, rem);
+        }
+        if (ok && save_fletcher16((const uint8_t *)buf, len) != ck) {
+            ok = 0;               /* payload corrupted */
+        }
     }
     close(fd);
     return ok ? PLAT_OK : PLAT_ERR_IO;

@@ -47,6 +47,7 @@ PUBLIC _dance_status
 PUBLIC _dance_loader_seg
 PUBLIC _dance_buf
 PUBLIC _dance_len
+PUBLIC _dance_hdr
 
 GAME_P0SEG EQU 0xFC
 GAME_P2SEG EQU 0xFE
@@ -102,9 +103,12 @@ _dance_run:
     ld   a, (_dance_op)
     or   a
     jr   nz, dance_no_out
-    ld   hl, (_dance_buf)       ; SAVE: blob -> loader-segment bounce
-    ld   de, LDR_BUF
-    ld   bc, (_dance_len)
+    ld   hl, _dance_hdr         ; SAVE: 8-byte envelope header first
+    ld   de, LDR_BUF            ; (magic/version/len/checksum, built by
+    ld   bc, 8                  ; plat_save_state)
+    ldir
+    ld   hl, (_dance_buf)       ; then blob -> loader-segment bounce
+    ld   bc, (_dance_len)       ; (DE already = LDR_BUF+8)
     ldir
 dance_no_out:
 
@@ -142,7 +146,11 @@ dance_no_out:
 dance_wr:
     ld   a, 9
     ld   de, LDR_BUF
-    ld   bc, (_dance_len)
+    ld   hl, (_dance_len)       ; header + payload
+    ld   bc, 8
+    add  hl, bc
+    ld   b, h
+    ld   c, l
     rst  0x30
     defb 8                      ; write block
     ld   (_dance_status), a
@@ -157,7 +165,11 @@ dance_load:
     jr   nz, dance_fail
     ld   a, 9
     ld   de, LDR_BUF
-    ld   bc, (_dance_len)
+    ld   hl, (_dance_len)       ; header + payload
+    ld   bc, 8
+    add  hl, bc
+    ld   b, h
+    ld   c, l
     rst  0x30
     defb 6                      ; read block
     ld   (_dance_status), a
@@ -179,9 +191,12 @@ dance_after:
     ld   a, (_dance_op)
     or   a
     jr   z, dance_no_in
-    ld   hl, LDR_BUF            ; LOAD: bounce -> blob (P0 -> P2)
-    ld   de, (_dance_buf)
-    ld   bc, (_dance_len)
+    ld   hl, LDR_BUF            ; LOAD: envelope header out for the C
+    ld   de, _dance_hdr         ; wrapper to validate...
+    ld   bc, 8
+    ldir
+    ld   de, (_dance_buf)       ; ...then bounce -> blob (P0 -> P2)
+    ld   bc, (_dance_len)       ; (HL already = LDR_BUF+8)
     ldir
 dance_no_in:
 
@@ -215,6 +230,8 @@ _dance_status:     defb 0      ; EXOS status of the block transfer
 _dance_loader_seg: defb 0      ; from the loader handoff (byte 10)
 _dance_buf:        defw 0
 _dance_len:        defw 0
+_dance_hdr:        defs 8      ; save-envelope header (magic 'DS', ver,
+                               ; flags, len16, fletcher16 - plat_ep.c)
 dance_sp_save:     defw 0
 dance_stack:       defs 160    ; window stack (page 1): IM1 pushes + the
 dance_stack_top:               ; kernel's entry saves before it switches

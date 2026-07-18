@@ -24,6 +24,8 @@ while pos + 12 <= len(data):
             segs[s] = body[p:p + 16384]
             p += 16384
 sav = open(savfile, 'rb').read()
+if sav[:2] == b'DS':
+    sav = sav[8:]          # skip the save-envelope header
 seg = 0xFC + (addr >> 14)
 buf = segs[seg][addr & 0x3FFF:(addr & 0x3FFF) + len(sav)]
 nd = sum(a != b for a, b in zip(sav, buf))

@@ -70,7 +70,14 @@ mkdir -p runB/sd
 cp "$PORT/mega65/DAGGOR65.SFX" runB/sd/
 python3 -c "
 d = open('runA/savbuf_a.bin','rb').read()
-open('runB/sd/DAGGOR65.SAV','wb').write(d + b'\x00' * (4096 - len(d)))
+s1 = s2 = 0
+for b in d:
+    s1 = (s1 + b) % 255
+    s2 = (s2 + s1) % 255
+hdr = bytes([ord('D'), ord('S'), 1, 0,
+             len(d) & 0xFF, len(d) >> 8, s1, s2])
+blob = hdr + d
+open('runB/sd/DAGGOR65.SAV','wb').write(blob + b'\x00' * (4096 - len(blob)))
 "
 boot_to_prompt "$(pwd)/runB"
 m65 cmd '@type:zload x\r' >/dev/null

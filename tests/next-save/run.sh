@@ -59,12 +59,15 @@ for try in 1 2 3 4; do
     fi
 done
 [ -n "$SAVED" ] || { next_stop; echo "NEXT-SAVE FAILED (no save file appeared)" >&2; exit 1; }
-LEN=$(stat -c%s runA/daggorath.sav)
+# file = 8-byte envelope header + payload
+LEN=$(( $(stat -c%s runA/daggorath.sav) - 8 ))
 ZRCPQ mem "$SAVBUF" "$LEN" runA/savbuf.bin >/dev/null
 next_stop
-cmp runA/daggorath.sav runA/savbuf.bin \
-    || { echo "NEXT-SAVE FAILED (file != SAVBUF)" >&2; exit 1; }
-echo "   save file == SAVBUF ($LEN bytes)"
+head -c 2 runA/daggorath.sav | grep -q '^DS$' \
+    || { echo "NEXT-SAVE FAILED (no DS envelope magic)" >&2; exit 1; }
+tail -c +9 runA/daggorath.sav | cmp - runA/savbuf.bin \
+    || { echo "NEXT-SAVE FAILED (payload != SAVBUF)" >&2; exit 1; }
+echo "   save payload == SAVBUF ($LEN bytes, envelope present)"
 
 echo "== 3. phase B: ZLOAD from a seeded save"
 rm -rf runB
@@ -77,9 +80,9 @@ for try in 1 2 3 4; do
     ZRCPQ keys 'zload x\n' 80
     sleep 3
     ZRCPQ mem "$SAVBUF" "$LEN" runB/savbuf.bin >/dev/null
-    if cmp -s runB/daggorath.sav runB/savbuf.bin; then
+    if tail -c +9 runB/daggorath.sav | cmp -s - runB/savbuf.bin; then
         LOADED=yes
-        echo "   SAVBUF matches the seeded save (try $try)"
+        echo "   SAVBUF matches the seeded save payload (try $try)"
         break
     fi
 done

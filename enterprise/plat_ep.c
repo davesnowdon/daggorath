@@ -298,14 +298,59 @@ void plat_yield(void)
 static uint8_t ep_dance(uint8_t op, uint16_t buf, uint16_t len);
 static void ep_saves_init(void);
 
+/* Save-file envelope: 8-byte header ["D" "S" ver flags len16 ck16] in
+ * front of the raw blob.  The blob itself is the compiler-ABI struct
+ * dump the frozen core builds - the header is the backend's own guard
+ * so a truncated, corrupted or different-build file is REJECTED
+ * (PLAT_ERR_IO -> the core's CMDERR path) instead of restored as
+ * garbage state.  Same format on all three backends; saves are still
+ * per-machine (the payload ABI differs by compiler - by design). */
+#define SAVE_FMT_VER 1u
+extern volatile uint8_t dance_hdr[8];
+
+static uint16_t save_fletcher16(const uint8_t *p, uint16_t n)
+{
+    uint16_t s1 = 0, s2 = 0, i;
+    for (i = 0; i < n; ++i) {
+        s1 += p[i];
+        if (s1 >= 255u) { s1 -= 255u; }
+        s2 += s1;
+        if (s2 >= 255u) { s2 -= 255u; }
+    }
+    return (uint16_t)((s2 << 8) | s1);
+}
+
 uint8_t plat_save_state(const void *buf, uint16_t len)
 {
+    uint16_t ck = save_fletcher16((const uint8_t *)buf, len);
+    dance_hdr[0] = 'D';
+    dance_hdr[1] = 'S';
+    dance_hdr[2] = SAVE_FMT_VER;
+    dance_hdr[3] = 0;
+    dance_hdr[4] = (uint8_t)(len & 0xFFu);
+    dance_hdr[5] = (uint8_t)(len >> 8);
+    dance_hdr[6] = (uint8_t)(ck & 0xFFu);
+    dance_hdr[7] = (uint8_t)(ck >> 8);
     return ep_dance(0, (uint16_t)buf, len);
 }
 
 uint8_t plat_load_state(void *buf, uint16_t len)
 {
-    return ep_dance(1, (uint16_t)buf, len);
+    uint8_t r = ep_dance(1, (uint16_t)buf, len);
+    uint16_t ck;
+    if (r != PLAT_OK) {
+        return r;
+    }
+    ck = save_fletcher16((const uint8_t *)buf, len);
+    if (dance_hdr[0] != 'D' || dance_hdr[1] != 'S' ||
+        dance_hdr[2] != SAVE_FMT_VER ||
+        dance_hdr[4] != (uint8_t)(len & 0xFFu) ||
+        dance_hdr[5] != (uint8_t)(len >> 8) ||
+        dance_hdr[6] != (uint8_t)(ck & 0xFFu) ||
+        dance_hdr[7] != (uint8_t)(ck >> 8)) {
+        return PLAT_ERR_IO;
+    }
+    return PLAT_OK;
 }
 
 /* ---- lifecycle -------------------------------------------------------- */
