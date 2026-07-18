@@ -69,8 +69,12 @@ static void ep_rebuild_row_addr(void)
  * naive loop's ~39, i.e. ~61ms -> ~18ms of every frame at 4 MHz.  Discrete
  * stores stay interrupt-transparent (no DI): the up-to-7353/s sound sample
  * ISR keeps running mid-clear. */
+static void flip_wait(void);   /* deferred flip-live wait (see plat_present) */
+
 void plat_clear(void)
 {
+    flip_wait();               /* the buffer we are about to clear must be
+                                * off-screen before the first store lands */
     __asm
         ld   hl, (_draw_base)       ; hidden buffer base (256-aligned)
         xor  a
@@ -223,10 +227,18 @@ void plat_invert_region_live(uint8_t col, uint8_t row, uint8_t ncols)
 /* Flip: publish the just-drawn hidden buffer, then hand the old front buffer
  * back as the new draw target.  Nick reloads LD1 from the LPT only at the top
  * of each frame, so writing the LPT bytes mid-frame can't tear the current
- * frame.  We then wait for the frame boundary so the flip is live before we
- * start clearing the old front buffer (which would otherwise still be on
- * screen).  Z80 base == Nick address in the FF segment, so draw_base IS LD1. */
+ * frame.  Z80 base == Nick address in the FF segment, so draw_base IS LD1.
+ *
+ * The flip only has to be LIVE before the old front buffer is next written,
+ * and the first writer is always plat_clear (viewer_draw_game clears before
+ * composing every frame; the heartbeat's *_live blits target the published
+ * buffer, never the old front).  So present returns immediately and the
+ * frame-boundary wait is DEFERRED into plat_clear: in the common case the
+ * next redraw is more than a frame away and the wait costs nothing, giving
+ * up to 20ms per present back to the scheduler (input, sound, creatures). */
 extern volatile uint8_t frame_flag;    /* isr_ep.asm: set on each frame int */
+
+static uint8_t flip_wait_pending;      /* present flipped; clear must wait */
 
 void plat_present(void)
 {
@@ -234,20 +246,28 @@ void plat_present(void)
     LPT_LD1[0] = (uint8_t)a;             /* LD1 lo */
     LPT_LD1[1] = (uint8_t)(a >> 8);      /* LD1 hi */
 
-    /* Nick re-reads the visible record's LD1 at the top of every frame, so
-     * writing the LPT bytes mid-frame can't tear the current frame.  Wait
-     * for the next FRAME interrupt (fired near end-of-visible, before the
-     * top border + reload) so the flip is live before we hand the old front
-     * buffer back as the draw target and the core clears it.  A plain HALT
-     * is not enough once sound plays: sample interrupts (up to 7353/s) wake
-     * HALT early, so loop on the ISR's frame flag. */
     frame_flag = 0;
-    do {
-        __asm halt __endasm;
-    } while (!frame_flag);
+    flip_wait_pending = 1;
 
     draw_base = (draw_base == FB0_BASE) ? FB1_BASE : FB0_BASE;
     ep_rebuild_row_addr();
+}
+
+/* Deferred flip-live wait (see plat_present).  The FRAME interrupt fires
+ * near end-of-visible, just before the top border + LD1 reload; frame_flag
+ * was cleared AFTER the LD1 write, so flag-set implies the reload that
+ * follows it read the new base.  A plain HALT is not enough once sound
+ * plays: sample interrupts (up to 7353/s) wake HALT early, so loop on the
+ * ISR's frame flag. */
+static void flip_wait(void)
+{
+    if (flip_wait_pending == 0) {
+        return;
+    }
+    flip_wait_pending = 0;
+    do {
+        __asm halt __endasm;
+    } while (!frame_flag);
 }
 
 /* ---- sound: sound_ep.c (Dave DAC PCM; isr_ep.asm sample engine) -------- */
