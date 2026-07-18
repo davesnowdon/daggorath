@@ -219,6 +219,53 @@ int main(void)
         emit(121, 192, 121, 0, fadset[f], 0);
     }
 
+    /* 9. EP-directed: the solid non-axis OCTANT fast paths ----------- */
+
+    /* 9a. bounds-hugging solid lines: endpoints touching each screen
+     *     edge/corner in all octants (worst case for the "candidates
+     *     stay in the endpoint bounding box" proof), both parities */
+    emit(0, 0, 255, 191, 0, 0);       /* corner-to-corner x-major */
+    emit(255, 191, 0, 0, 0, 1);
+    emit(0, 191, 255, 0, 0, 0);
+    emit(255, 0, 0, 191, 0, 1);
+    emit(0, 0, 191, 191, 0, 0);       /* perfect diagonals on edges */
+    emit(191, 191, 0, 0, 0, 1);
+    emit(64, 191, 255, 0, 0, 0);
+    emit(255, 0, 64, 191, 0, 1);
+    emit(0, 0, 255, 1, 0, 0);         /* hugging y=0 (x-major) */
+    emit(255, 1, 0, 0, 0, 0);
+    emit(0, 191, 255, 190, 0, 1);     /* hugging y=191 */
+    emit(0, 0, 1, 191, 0, 0);         /* hugging x=0 (y-major) */
+    emit(1, 191, 0, 0, 0, 0);
+    emit(255, 0, 254, 191, 0, 1);     /* hugging x=255 */
+
+    /* 9b. dispatch boundary: exactly one coordinate one past the
+     *     in-bounds box (must fall back to the clipping generic DDA) */
+    emit(0, 0, 256, 190, 0, 0);
+    emit(256, 190, 0, 0, 0, 0);
+    emit(0, 0, 254, 192, 0, 1);
+    emit(-1, 5, 254, 188, 0, 0);
+    emit(3, -1, 250, 189, 0, 0);
+    emit(5, 191, 250, -1, 0, 1);
+
+    /* 9c. byte-boundary and mask-wrap stress: short solid diagonals
+     *     crossing x = 8k in all four direction combos */
+    for (i = 0; i < 8; ++i) {
+        int bx = i * 32 + 6;
+        emit(bx, 20 + i * 8, bx + 5, 23 + i * 8, 0, 0);   /* +x +y */
+        emit(bx + 5, 40 + i * 8, bx, 44 + i * 8, 0, 0);   /* -x +y */
+        emit(bx, 90 + i * 8, bx + 4, 86 + i * 8, 0, 1);   /* +x -y */
+        emit(bx + 4, 130 + i * 8, bx, 124 + i * 8, 0, 0); /* -x -y */
+    }
+
+    /* 9d. steep/shallow extremes: qy/qx near 1 and near max */
+    emit(0, 50, 255, 51, 0, 0);       /* qy = 1 */
+    emit(255, 53, 0, 52, 0, 0);
+    emit(10, 0, 12, 191, 0, 0);       /* qx = 2 */
+    emit(100, 0, 199, 191, 0, 1);     /* qx mid */
+    emit(0, 60, 191, 155, 0, 0);      /* adx = 2*ady near-diag */
+    emit(128, 96, 255, 160, 0, 0);    /* qy = 129-ish */
+
     printf("};\n\n#define CORPUS_COUNT %uu\n", n_emitted);
     fprintf(stderr, "corpus_gen_ep: %u records\n", n_emitted);
     return 0;

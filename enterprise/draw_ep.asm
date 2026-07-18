@@ -10,13 +10,16 @@
 ;      (pmul), so the routine runs on a stock Z80 and is verified under
 ;      z88dk-ticks -mz80 (tests/z80draw-ep).
 ;   3. Solid-line fast paths: period==1 skips the length/period division
-;      and both step multiplies, and axis-aligned solid lines (dy==0 /
-;      dx==0) take dedicated horizontal/vertical fill paths.  Both are
-;      candidate-set IDENTITIES with the generic DDA (see the proofs at
-;      hz_line / vt_line below), proven by the tests/z80draw-ep corpus.
-;      Why they matter at 4 MHz: viewer_clear_screen on inverse levels
-;      paints 192 full-width solid rows (3.4s generic -> ~38ms here) and
-;      the 3D rooms are vertical-heavy.
+;      and both step multiplies; axis-aligned solid lines (dy==0 /
+;      dx==0) take dedicated horizontal/vertical fill paths; and solid
+;      non-axis lines whose BOTH endpoints are on-screen take unclipped
+;      octant loops (x-major / y-major / perfect diagonal, ~2.5-3x the
+;      generic loop).  All are candidate-set IDENTITIES with the generic
+;      DDA (see the proofs at hz_line / vt_line / sd_entry below),
+;      proven by the tests/z80draw-ep corpus.  Why they matter at 4 MHz:
+;      viewer_clear_screen on inverse levels paints 192 full-width solid
+;      rows (3.4s generic -> ~38ms here), the 3D rooms are axis-heavy,
+;      and creature shapes + receding wall edges are solid diagonals.
 ;
 ; Pixel-identical to core/draw_ref.c (the normative C port of the 6809
 ; VECTOR.ASM): 24.8 fixed-point DDA, plot-candidate-then-step, endpoint
@@ -159,6 +162,30 @@ dl_len_set:
     or   l
     jp   z, vt_line             ; solid vertical
 
+    ; solid non-axis: if BOTH endpoints are on-screen, every candidate
+    ; provably is too (see the octant fast-path header below), so the
+    ; generic loop's clip gates can never fire -> unclipped octant
+    ; loops.  Any off-screen endpoint falls through to the generic DDA.
+    ld   a, (v_x0+1)            ; x in [0,255] <=> int16 high byte 0
+    or   a
+    jr   nz, sd_generic
+    ld   a, (v_x1+1)
+    or   a
+    jr   nz, sd_generic
+    ld   a, (v_y0+1)            ; y in [0,191]: high 0 and low < 192
+    or   a
+    jr   nz, sd_generic
+    ld   a, (v_y1+1)
+    or   a
+    jr   nz, sd_generic
+    ld   a, (v_y0)
+    cp   192
+    jr   nc, sd_generic
+    ld   a, (v_y1)
+    cp   192
+    jp   c, sd_entry
+
+sd_generic:
     ; solid diagonal: nplots = length (no division), step = q (period*q
     ; needs no multiply), first-plot offset = step - q = 0
     ld   hl, (v_len)
@@ -652,6 +679,283 @@ plot_op2:
     ret
 
 ; ---------------------------------------------------------------------
+; solid non-axis octant fast paths (period==1, adx!=0, ady!=0, and all
+; of x0,x1 in [0,255], y0,y1 in [0,191] - checked at dispatch)
+;
+; Candidate-set identity: period==1 plots EVERY candidate k = 0..len-1
+; at xx_k = xx0 + k*xinc (plot before step, endpoint never reached).
+; |xinc| = floor(adx*256/len) so |k*xinc| <= (len-1)*adx*256/len
+; < adx*256: every candidate's integer part lies inside the endpoint
+; bounding box [min(x0,x1),max(x0,x1)] x [min(y0,y1),max(y0,y1)].  With
+; both endpoints on-screen the generic gates can never fire, so these
+; unclipped loops plot the identical pixel set:
+;   x-major (adx > ady): len = adx -> xinc = +-0x100 EXACTLY (qdiv of
+;     |delta|==len), so xi walks x0, x0+-1, ... with its fraction pinned
+;     at 0x80 - modelled by the mask rotate + byte step.  yi advances by
+;     qy = floor(ady*256/adx) in [1,254]: an 8-bit fraction accumulator
+;     seeded 0x80 whose carry (add) / borrow (sub) is exactly the
+;     reference's 24.8 integer-byte increment; the linear framebuffer
+;     makes that integer step "address +- 32" (16-bit, carry into H).
+;     The high bytes of the reference's 24-bit xx/yy can never leave 0
+;     inside the bounding box, so dropping them loses nothing.
+;   y-major (ady > adx): the mirror image - row step every iteration,
+;     mask rotate on the x fraction's carry/borrow.
+;   diagonal (adx == ady): xinc AND yinc are +-0x100 exactly; both
+;     fractions stay pinned - a pure mask-rotate + row-step walk.
+; The post-final loop iteration steps registers once past the last
+; candidate (mask/HL may go stale) but never dereferences them.
+; Faded lines (period > 1) and any-endpoint-off-screen lines keep the
+; generic DDA.  Proven pixel-identical by the tests/z80draw-ep corpus.
+;
+; Direction handling is single-byte SMC on each loop's ops:
+;   x step:  rrca(0F)+inc hl(23) for +x   / rlca(07)+dec hl(2B) for -x
+;   y frac:  add a,d(82) for +y           / sub d(92) for -y
+;   y row:   add a,n(C6)+inc h(24) for +y / sub n(D6)+dec h(25) for -y
+; (add sets carry on overflow -> inc; sub sets carry on borrow -> dec,
+; so one "jr nc, skip / patched-op" skeleton serves both directions.)
+; ---------------------------------------------------------------------
+sd_entry:
+    ; octant dispatch (spans fit in one byte here: adx<=255, ady<=191)
+    ld   a, (v_ady)
+    ld   b, a
+    ld   a, (v_adx)
+    cp   b
+    jp   z, sd_diag
+    jp   c, sd_ymajor
+
+; ----- x-major: adx > ady >= 1 ---------------------------------------
+sd_xmajor:
+    ld   hl, (v_ady)            ; qy = (ady<<8)/adx in [1,254]
+    call qdiv                   ; (v_len == adx; destroys A,B,C,DE)
+    push hl                     ; save qy (L)
+    ld   hl, (v_plt)            ; this call's plot template
+    ld   de, plot_opx
+    ldi
+    ldi
+    ldi
+    ld   a, (v_sx)
+    or   a
+    jr   nz, sdx_xneg
+    ld   a, 0x0F                ; rrca
+    ld   (sdx_mrot), a
+    ld   a, 0x23                ; inc hl
+    ld   (sdx_bstep), a
+    jr   sdx_ypat
+sdx_xneg:
+    ld   a, 0x07                ; rlca
+    ld   (sdx_mrot), a
+    ld   a, 0x2B                ; dec hl
+    ld   (sdx_bstep), a
+sdx_ypat:
+    ld   a, (v_sy)
+    or   a
+    jr   nz, sdx_yneg
+    ld   a, 0x82                ; add a,d
+    ld   (sdx_fop), a
+    ld   a, 0xC6                ; add a,n
+    ld   (sdx_rop1), a
+    ld   a, 0x24                ; inc h
+    ld   (sdx_rop2), a
+    jr   sdx_go
+sdx_yneg:
+    ld   a, 0x92                ; sub d
+    ld   (sdx_fop), a
+    ld   a, 0xD6                ; sub n
+    ld   (sdx_rop1), a
+    ld   a, 0x25                ; dec h
+    ld   (sdx_rop2), a
+sdx_go:
+    call sd_addr                ; C = mask[x0], HL = addr(x0,y0)
+    pop  de
+    ld   d, e                   ; D = qy
+    ld   e, 0x80                ; E = y fraction (reference seed)
+    ld   a, (v_adx)
+    ld   b, a                   ; count = len = adx (2..255)
+sdx_loop:
+    ld   a, c
+plot_opx:
+    or   (hl)                   ; SMC 3 bytes (same templates as plot_op)
+    ld   (hl), a
+    nop
+    ; y: fraction +- qy; on carry/borrow step one row
+    ld   a, e
+sdx_fop:
+    add  a, d                   ; SMC 1 byte: 82 add a,d / 92 sub d
+    ld   e, a
+    jr   nc, sdx_nrow
+    ld   a, l
+sdx_rop1:
+    add  a, 32                  ; SMC 1 byte: C6 add a,n / D6 sub n
+    ld   l, a
+    jr   nc, sdx_nrow
+sdx_rop2:
+    inc  h                      ; SMC 1 byte: 24 inc h / 25 dec h
+sdx_nrow:
+    ; x: rotate mask; on wrap step one byte
+    ld   a, c
+sdx_mrot:
+    rrca                        ; SMC 1 byte: 0F rrca / 07 rlca
+    ld   c, a
+    jr   nc, sdx_nbyte
+sdx_bstep:
+    inc  hl                     ; SMC 1 byte: 23 inc hl / 2B dec hl
+sdx_nbyte:
+    djnz sdx_loop
+    ret
+
+; ----- y-major: ady > adx >= 1 ---------------------------------------
+sd_ymajor:
+    ld   hl, (v_adx)            ; qx = (adx<<8)/ady in [1,254]
+    call qdiv                   ; (v_len == ady; destroys A,B,C,DE)
+    push hl                     ; save qx (L)
+    ld   hl, (v_plt)
+    ld   de, plot_opy
+    ldi
+    ldi
+    ldi
+    ld   a, (v_sx)
+    or   a
+    jr   nz, sdy_xneg
+    ld   a, 0x82                ; add a,d
+    ld   (sdy_fop), a
+    ld   a, 0x0F                ; rrca
+    ld   (sdy_mrot), a
+    ld   a, 0x23                ; inc hl
+    ld   (sdy_bstep), a
+    jr   sdy_ypat
+sdy_xneg:
+    ld   a, 0x92                ; sub d
+    ld   (sdy_fop), a
+    ld   a, 0x07                ; rlca
+    ld   (sdy_mrot), a
+    ld   a, 0x2B                ; dec hl
+    ld   (sdy_bstep), a
+sdy_ypat:
+    ld   a, (v_sy)
+    or   a
+    jr   nz, sdy_yneg
+    ld   a, 0xC6                ; add a,n
+    ld   (sdy_rop1), a
+    ld   a, 0x24                ; inc h
+    ld   (sdy_rop2), a
+    jr   sdy_go
+sdy_yneg:
+    ld   a, 0xD6                ; sub n
+    ld   (sdy_rop1), a
+    ld   a, 0x25                ; dec h
+    ld   (sdy_rop2), a
+sdy_go:
+    call sd_addr                ; C = mask[x0], HL = addr(x0,y0)
+    pop  de
+    ld   d, e                   ; D = qx
+    ld   e, 0x80                ; E = x fraction (reference seed)
+    ld   a, (v_ady)
+    ld   b, a                   ; count = len = ady (2..191)
+sdy_loop:
+    ld   a, c
+plot_opy:
+    or   (hl)                   ; SMC 3 bytes (same templates as plot_op)
+    ld   (hl), a
+    nop
+    ; x: fraction +- qx; on carry/borrow rotate mask (maybe step byte)
+    ld   a, e
+sdy_fop:
+    add  a, d                   ; SMC 1 byte: 82 add a,d / 92 sub d
+    ld   e, a
+    jr   nc, sdy_nx
+    ld   a, c
+sdy_mrot:
+    rrca                        ; SMC 1 byte: 0F rrca / 07 rlca
+    ld   c, a
+    jr   nc, sdy_nx
+sdy_bstep:
+    inc  hl                     ; SMC 1 byte: 23 inc hl / 2B dec hl
+sdy_nx:
+    ; y: one row every iteration
+    ld   a, l
+sdy_rop1:
+    add  a, 32                  ; SMC 1 byte: C6 add a,n / D6 sub n
+    ld   l, a
+    jr   nc, sdy_ny
+sdy_rop2:
+    inc  h                      ; SMC 1 byte: 24 inc h / 25 dec h
+sdy_ny:
+    djnz sdy_loop
+    ret
+
+; ----- perfect diagonal: adx == ady ----------------------------------
+sd_diag:
+    ld   hl, (v_plt)
+    ld   de, plot_opd
+    ldi
+    ldi
+    ldi
+    ld   a, (v_sx)
+    or   a
+    jr   nz, sdd_xneg
+    ld   a, 0x0F                ; rrca
+    ld   (sdd_mrot), a
+    ld   a, 0x23                ; inc hl
+    ld   (sdd_bstep), a
+    jr   sdd_ypat
+sdd_xneg:
+    ld   a, 0x07                ; rlca
+    ld   (sdd_mrot), a
+    ld   a, 0x2B                ; dec hl
+    ld   (sdd_bstep), a
+sdd_ypat:
+    call sd_addr                ; C = mask[x0], HL = addr(x0,y0)
+    ld   de, 32                 ; +y row stride
+    ld   a, (v_sy)
+    or   a
+    jr   z, sdd_go
+    ld   de, 0xFFE0             ; -y row stride (-32)
+sdd_go:
+    ld   a, (v_adx)
+    ld   b, a                   ; count = len (1..191)
+sdd_loop:
+    ld   a, c
+plot_opd:
+    or   (hl)                   ; SMC 3 bytes (same templates as plot_op)
+    ld   (hl), a
+    nop
+    add  hl, de                 ; y: one row every iteration
+    ld   a, c
+sdd_mrot:
+    rrca                        ; SMC 1 byte: 0F rrca / 07 rlca
+    ld   c, a
+    jr   nc, sdd_nb
+sdd_bstep:
+    inc  hl                     ; SMC 1 byte: 23 inc hl / 2B dec hl
+sdd_nb:
+    djnz sdd_loop
+    ret
+
+; C = mask[x0], HL = framebuffer byte address of (x0, y0).
+; In-bounds x0/y0 only (fast-path dispatch guarantees).  Uses A, E.
+sd_addr:
+sd_mskpg:
+    ld   h, 0                   ; SMC: mask page (build_tables)
+    ld   a, (v_x0)
+    ld   l, a
+    ld   c, (hl)                ; C = 0x80 >> (x0&7)
+    rrca
+    rrca
+    rrca
+    and  0x1F                   ; x0>>3
+    ld   e, a
+sd_rowpg:
+    ld   h, 0                   ; SMC: rowlo page (build_tables)
+    ld   a, (v_y0)
+    ld   l, a
+    ld   a, (hl)                ; (y0&7)<<5
+    or   e                      ; | x0>>3 (disjoint bits)
+    inc  h
+    ld   h, (hl)                ; rowhi[y0] (base baked in)
+    ld   l, a
+    ret
+
+; ---------------------------------------------------------------------
 ; helpers
 ; ---------------------------------------------------------------------
 
@@ -788,10 +1092,12 @@ build_tables:
     ld   a, (_ep_tbl_pg)
     ld   (pl_mskpg+1), a
     ld   (vt_mskpg+1), a
+    ld   (sd_mskpg+1), a
     inc  a
     ld   (pl_rowpg+1), a
     ld   (hz_rowpg+1), a
     ld   (vt_rowpg+1), a
+    ld   (sd_rowpg+1), a
     dec  a
     ld   h, a                   ; mask page
     ld   l, 0
