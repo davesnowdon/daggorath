@@ -185,10 +185,10 @@ void plat_present(void)
         }
         /* row by row via the returned pitch - SDL does not guarantee
          * pitch == width * 4 */
-        for (y = 0; y < FB_HEIGHT; ++y) {
+        for (y = 0; y < (int)FB_HEIGHT; ++y) {
             uint32_t *row = (uint32_t *)(base + (size_t)y * (size_t)pitch);
             const uint8_t *src = fb + (size_t)y * FB_WIDTH;
-            for (x = 0; x < FB_WIDTH; ++x) {
+            for (x = 0; x < (int)FB_WIDTH; ++x) {
                 row[x] = src[x] ? on : 0xFF000000u;
             }
         }
