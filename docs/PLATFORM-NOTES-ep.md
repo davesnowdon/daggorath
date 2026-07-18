@@ -153,3 +153,33 @@ practice:
   image.
 
 All of the above run from the repo root via `make check-all`.
+
+## Rendering performance (2026-07-18)
+
+A full 3D redraw used to cost ~0.2-0.5s at 4 MHz; four backend-only
+changes (core untouched, every one gated by the existing harnesses)
+brought the fixed per-frame overhead down by ~60-80ms and the vector
+phase by ~2.5-3x on solid-heavy (close combat) frames:
+
+- draw_ep.asm octant fast paths: solid (period==1) non-axis lines with
+  both endpoints on-screen take unclipped x-major / y-major / perfect-
+  diagonal loops (~80-90 T per plotted pixel vs ~274 generic).
+  Candidate-set identity proven in-source and by tests/z80draw-ep.
+- plat_clear unrolled 32-wide: ~61ms -> ~18ms (still discrete stores -
+  the video-RAM LDIR derailment workaround holds - and no DI, so the
+  sample ISR keeps running).
+- plat_present no longer HALT-waits for the frame boundary; the wait
+  is deferred into the next plat_clear (usually free), returning up to
+  20ms per redraw to the scheduler.
+- plat_blit_glyph / plat_invert_region call asm helpers (ep_blit7 /
+  ep_xor7, ~2.5x), and the row_addr[] table + its per-present rebuild
+  are gone.
+
+Measured line-traffic reality (desktop `DOD_DRAW_LOG` capture of the
+s3-combat scenario, 39810 calls): 93% of calls are FADED lines (the
+torch-light fade covers most of the 3D view), so whole-scenario
+aggregate rasterizer gains are modest (~2%); the octant paths
+concentrate their win in the solid-heavy frames that feel slowest.
+The remaining known lever is the faded-line generic path (per-line
+setup ~2400 T dominates its ~5 candidates/line); see the game-weighted
+bench notes in tests/z80draw-ep if that is ever wanted.
