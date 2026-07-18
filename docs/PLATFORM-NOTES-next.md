@@ -166,6 +166,35 @@ level-generation phase collapsing from ~33 s to ~2-3 s, and the fixed
 start scene still converges 0/6144 bytes vs the desktop golden (same
 dungeon, byte for byte).
 
+## Address-space budget (2026-07-18) - why no rasterizer fast paths here
+
+The EP backend gained solid-line fast paths (hz/vt fills + unclipped
+octant loops, enterprise/draw_ep.asm) worth ~2.5-3x on its vector
+volume at 4 MHz.  A full back-port to draw_z80n.asm was built, proven
+pixel-identical by the tests/z80draw corpus (57.3M vs 91.1M cycles,
+1.59x on the corpus), and then REVERTED, because it does not fit:
+
+- The .nex window 0x6000-0xFDFC holds the ~37KB core + backend with
+  code+data+bss ending at ~0xFBA6.  The STACK is the remaining ~600
+  bytes below REGISTER_SP 0xFDFC, which sits directly under the IM2
+  stub (0xFDFD) and vector table (0xFE00-0xFF00).
+- +1KB of fast-path code pushed BSS_END to 0xFF1F: _isr_jiffies and
+  the viewer_fade state landed INSIDE the vector table, interrupts
+  died mid-frame, and next-scene showed a wedged half-composed frame
+  (full 3D, no text) while the ticks corpus - flat 64K RAM, no IM2 -
+  stayed green.  The Makefile now fails the link if BSS ends above
+  0xFBFC (<512 bytes of stack).
+
+Escape routes, if fast paths are ever wanted at 28 MHz: relocate the
+stack + IM2 table into the bank-7 draw-page tail (0x5B00-0x5FFF is
+free after the lookup tables; requires a pre-remap bank5->bank7 copy
+of live stack contents in plat_init), or runtime-copy the fast-path
+code there.  Both make interrupts/stack depend on the MMU2 mapping
+forever; at 28 MHz a worst-case frame is already ~25-50ms, so neither
+is currently justified.  The corpus categories 8-9 (fast-path stress)
+and the 0x5C00 harness org + image-size guard were kept - they gate
+the shipping rasterizer all the same.
+
 ## Still open
 
 - Real-hardware SD boot (Dave's Next: both files in one SD folder,

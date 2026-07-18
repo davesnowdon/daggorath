@@ -3,7 +3,7 @@
 #
 #   1. generate the deterministic corpus (corpus_gen.c, seed 0xC0DE1234)
 #   2. compile the REAL spectrum-next/draw_z80n.asm into a zsdcc test
-#      wrapper (z88dk +test target, org 0x8000) and execute it under
+#      wrapper (z88dk +test target, org 0x5C00) and execute it under
 #      z88dk-ticks -mz80n; collect the 64K RAM dump on exit
 #   3. rasterize the same corpus with the normative core/draw_ref.c on
 #      the host (gcc), pack to the ULA layout, compare byte-for-byte
@@ -30,17 +30,32 @@ echo "== 2. host reference (gcc + core/draw_ref.c)"
 gcc -std=c99 -O2 -Wall -Wextra -I"$CORE" -o host_check \
     host_check.c "$CORE/draw_ref.c"
 
+# Org 0x5C00, NOT the historic 0x8000: categories 8-9 grew the corpus
+# past what fits between 0x8000 and 0xFFFF (the EP harness hit the same
+# wall first - an image tail crossing 0xFFFF wraps the BSS over the
+# corpus and produces one-pixel heisen-diffs).  0x5C00 sits just above
+# the sentinel (0x5B00); the lookup tables live at 0x5800-0x5AFF.
+ORG=0x5C00
+
 build_and_run () {
     # $1 = tag, remaining args = source of the routine under test
     local tag="$1"; shift
     zcc +test -clib=z80n -compiler=sdcc -SO2 --max-allocs-per-node20000 \
-        -pragma-define:CRT_ORG_CODE=0x8000 \
+        -pragma-define:CRT_ORG_CODE=$ORG \
         wrapper.c done.asm "$@" -o "wrapper_$tag" -m
     local done_addr
     done_addr=$(grep -E '^_test_done\b' "wrapper_$tag.map" \
                 | head -1 | sed -E 's/.*\$([0-9a-fA-F]+).*/\1/')
     if [ -z "$done_addr" ]; then
         echo "run.sh: _test_done not found in wrapper_$tag.map" >&2
+        exit 2
+    fi
+    # the whole image must fit below the top of RAM (see ORG note above)
+    local img_end
+    img_end=$(( ORG + $(stat -c%s "wrapper_$tag") ))
+    if [ "$img_end" -gt $((0xFF00)) ]; then
+        printf 'run.sh: wrapper_%s image ends at 0x%X - past 0xFF00\n' \
+               "$tag" "$img_end" >&2
         exit 2
     fi
     # ticks v0.14c quirks (all verified empirically):
@@ -54,7 +69,7 @@ build_and_run () {
     # verifies the wrapper's completion sentinel besides the pixels.
     cp "wrapper_$tag" "wrapper_$tag.bin"
     rm -f "ram_$tag.bin"
-    timeout 300 z88dk-ticks -mz80n -l 0x8000 -pc 0x8000 -end "0x$done_addr" \
+    timeout 300 z88dk-ticks -mz80n -l $ORG -pc $ORG -end "0x$done_addr" \
         -counter 2000000000 -output "ram_$tag.bin" "wrapper_$tag.bin" \
         | tail -1 > "cycles_$tag.txt"
     if [ ! -s "cycles_$tag.txt" ] || [ ! -f "ram_$tag.bin" ]; then

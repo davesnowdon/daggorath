@@ -20,8 +20,24 @@ ZCCFLAGS := +zxn -compiler=sdcc -clib=sdcc_iy -subtype=nex \
             -DDOD_RNG_ASM \
             -I$(CORE) -pragma-include:zpragma.inc
 
+# The 0x6000-0xFDFC window is nearly FULL: code+data+bss end ~0xFBA6 and
+# the stack (REGISTER_SP 0xFDFC, just below the IM2 stub at 0xFDFD and
+# table at 0xFE00-0xFF00) lives in the remaining ~600-byte gap.  Growth
+# past that gap silently overlays the interrupt plumbing with BSS -
+# reproduced 2026-07-18: +1KB of rasterizer fast paths put _isr_jiffies
+# INSIDE the vector table and wedged the machine.  The link-time check
+# below keeps at least 512 bytes of stack.  If code must grow, something
+# has to move OUT of the window (banking or draw-page-tail relocation);
+# see PLATFORM-NOTES-next.md "Address-space budget".
 daggorath.nex: $(SRC) zpragma.inc sfx_index.h daggorath.sfx
 	zcc $(ZCCFLAGS) $(SRC) -o daggorath -create-app -m
+	@end=$$(sed -n 's/^__BSS_END_tail *= *\$$\([0-9A-Fa-f]*\).*/\1/p' daggorath.map); \
+	end_dec=$$(printf '%d' "0x$$end"); \
+	if [ "$$end_dec" -gt $$(printf '%d' 0xFBFC) ]; then \
+	    echo "FATAL: BSS ends at 0x$$end - <512 bytes of stack below the"; \
+	    echo "IM2 stub at 0xFDFD.  See the note above this Makefile rule."; \
+	    exit 1; \
+	fi
 
 # SFX blob + index from the 11025 Hz raws (regenerate the raws from
 # assets/sfx-src with tools/wav2raw.c, factor 2)

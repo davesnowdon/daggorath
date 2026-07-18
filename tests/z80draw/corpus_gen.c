@@ -17,6 +17,12 @@
  *   6. flags with garbage upper bits (only bit 0 may matter)
  *   7. PRNG mix: coords in [-512,767], vctfad from the required set
  *      {0,1,2,4,8,16,32,0xFF} plus raw random bytes, random inverse
+ *   8. fast-path-directed: the H/V solid paths (full rows/columns,
+ *      edge clips, sub-byte spans, faded axis lines that must NOT
+ *      dispatch) - byte-identical to the EP corpus's category 8
+ *   9. fast-path-directed: the solid non-axis octant loops (bounds-
+ *      hugging lines, dispatch off-by-ones, mask-wrap stress,
+ *      steep/shallow extremes) - byte-identical to category 9 there
  */
 #include <stdio.h>
 #include <stdint.h>
@@ -147,6 +153,127 @@ int main(void)
         unsigned flags = xs32() & 1u;
         emit(x0, y0, x1, y1, fad, flags);
     }
+
+    /* 8. fast-path-directed: the H/V solid paths (draw_z80n.asm) --------- */
+
+    /* 8a. the viewer_clear_screen shape: full-width solid rows at every
+     *     y, set and inverse (the inverse ones over rows the set ones
+     *     painted white - observable clears): 384 */
+    for (i = 0; i < 192; ++i) {
+        emit(0, i, 256, i, 0, 0);
+        emit(0, i, 256, i, 0, (i & 3) == 1);  /* every 4th row recleared */
+    }
+
+    /* 8b. reversed-direction rows, spot rows off both vertical edges */
+    for (i = 0; i < 12; ++i) {
+        emit(256, i * 16, 0, i * 16, 0, i & 1);       /* sx=- full width  */
+        emit(255, i * 16 + 5, -1, i * 16 + 5, 0, 0);  /* on-screen ends   */
+    }
+    emit(-50, -1, 300, -1, 0, 0);     /* row just above the screen: none */
+    emit(-50, 192, 300, 192, 0, 0);   /* row just below: none            */
+    emit(-50, -100, 300, -100, 0, 1);
+    emit(-50, 400, 300, 400, 0, 1);
+
+    /* 8c. rows clipped by the left/right edges, both directions */
+    for (i = 0; i < 16; ++i) {
+        emit(-30 - i, 10 + i * 4, 40 + i * 3, 10 + i * 4, 0, i & 1);
+        emit(200 + i * 5, 12 + i * 4, 320 + i, 12 + i * 4, 0, (i >> 1) & 1);
+        emit(320 + i, 14 + i * 4, 200 - i * 5, 14 + i * 4, 0, i & 1);
+        emit(40 + i * 3, 8 + i * 4, -30 - i, 8 + i * 4, 0, (i >> 1) & 1);
+    }
+    /* rows entirely off one side (empty after clip) */
+    emit(-200, 50, -3, 50, 0, 0);
+    emit(-3, 51, -200, 51, 0, 1);
+    emit(258, 52, 700, 52, 0, 0);
+    emit(700, 53, 258, 53, 0, 1);
+
+    /* 8d. sub-byte and byte-boundary spans (lb==hb and lb+1==hb) */
+    for (i = 0; i < 8; ++i) {
+        emit(i, 100, i + 1, 100, 0, 0);           /* single pixel      */
+        emit(i * 8 + 3, 101, i * 8 + 6, 101, 0, 0);   /* inside a byte */
+        emit(i * 8 + 5, 102, i * 8 + 11, 102, 0, 0);  /* spans 2 bytes */
+        emit(i * 8, 103, i * 8 + 8, 103, 0, i & 1);   /* exact byte    */
+        emit(i * 8 + 7, 104, i * 8 + 9, 104, 0, 0);   /* straddles     */
+    }
+    emit(248, 105, 256, 105, 0, 0);   /* last byte exactly */
+    emit(250, 106, 255, 106, 0, 0);   /* right-partial only (hi=254) */
+    emit(0, 107, 5, 107, 0, 0);       /* left-partial only */
+
+    /* 8e. single columns at every byte boundary and screen edge, both
+     *     directions, set and inverse; clipped and off-screen columns */
+    for (i = 0; i < 8; ++i) {
+        int x = i * 32 + (i & 7);
+        emit(x, 0, x, 192, 0, 0);                 /* full column       */
+        emit(x + 9, 192, x + 9, 0, 0, 1);         /* sy=- inverse      */
+    }
+    emit(0, 0, 0, 192, 0, 0);
+    emit(255, 0, 255, 192, 0, 0);
+    emit(7, -40, 7, 250, 0, 0);       /* clipped both ends */
+    emit(8, 250, 8, -40, 0, 1);
+    emit(9, -40, 9, -2, 0, 0);        /* entirely above: none */
+    emit(10, 194, 10, 400, 0, 0);     /* entirely below: none */
+    emit(-1, 0, -1, 192, 0, 0);       /* off-screen column: none */
+    emit(256, 0, 256, 192, 0, 0);
+    for (i = 0; i < 12; ++i) {        /* short columns everywhere */
+        emit(20 + i * 19, 30 + i * 5, 20 + i * 19, 30 + i * 5 + 1 + i, 0,
+             i & 1);
+    }
+
+    /* 8f. axis-aligned but FADED (period > 1): must dispatch to the
+     *     generic DDA, not the fast paths */
+    for (f = 1; f < 8; ++f) {
+        emit(0, 110 + f, 256, 110 + f, fadset[f], 0);
+        emit(120, 0, 120, 192, fadset[f], f & 1);
+        emit(256, 120 + f, 0, 120 + f, fadset[f], 1);
+        emit(121, 192, 121, 0, fadset[f], 0);
+    }
+
+    /* 9. fast-path-directed: the solid non-axis OCTANT loops ----------- */
+
+    /* 9a. bounds-hugging solid lines: endpoints touching each screen
+     *     edge/corner in all octants (worst case for the "candidates
+     *     stay in the endpoint bounding box" proof), both parities */
+    emit(0, 0, 255, 191, 0, 0);       /* corner-to-corner x-major */
+    emit(255, 191, 0, 0, 0, 1);
+    emit(0, 191, 255, 0, 0, 0);
+    emit(255, 0, 0, 191, 0, 1);
+    emit(0, 0, 191, 191, 0, 0);       /* perfect diagonals on edges */
+    emit(191, 191, 0, 0, 0, 1);
+    emit(64, 191, 255, 0, 0, 0);
+    emit(255, 0, 64, 191, 0, 1);
+    emit(0, 0, 255, 1, 0, 0);         /* hugging y=0 (x-major) */
+    emit(255, 1, 0, 0, 0, 0);
+    emit(0, 191, 255, 190, 0, 1);     /* hugging y=191 */
+    emit(0, 0, 1, 191, 0, 0);         /* hugging x=0 (y-major) */
+    emit(1, 191, 0, 0, 0, 0);
+    emit(255, 0, 254, 191, 0, 1);     /* hugging x=255 */
+
+    /* 9b. dispatch boundary: exactly one coordinate one past the
+     *     in-bounds box (must fall back to the clipping generic DDA) */
+    emit(0, 0, 256, 190, 0, 0);
+    emit(256, 190, 0, 0, 0, 0);
+    emit(0, 0, 254, 192, 0, 1);
+    emit(-1, 5, 254, 188, 0, 0);
+    emit(3, -1, 250, 189, 0, 0);
+    emit(5, 191, 250, -1, 0, 1);
+
+    /* 9c. byte-boundary and mask-wrap stress: short solid diagonals
+     *     crossing x = 8k in all four direction combos */
+    for (i = 0; i < 8; ++i) {
+        int bx = i * 32 + 6;
+        emit(bx, 20 + i * 8, bx + 5, 23 + i * 8, 0, 0);   /* +x +y */
+        emit(bx + 5, 40 + i * 8, bx, 44 + i * 8, 0, 0);   /* -x +y */
+        emit(bx, 90 + i * 8, bx + 4, 86 + i * 8, 0, 1);   /* +x -y */
+        emit(bx + 4, 130 + i * 8, bx, 124 + i * 8, 0, 0); /* -x -y */
+    }
+
+    /* 9d. steep/shallow extremes: qy/qx near 1 and near max */
+    emit(0, 50, 255, 51, 0, 0);       /* qy = 1 */
+    emit(255, 53, 0, 52, 0, 0);
+    emit(10, 0, 12, 191, 0, 0);       /* qx = 2 */
+    emit(100, 0, 199, 191, 0, 1);     /* qx mid */
+    emit(0, 60, 191, 155, 0, 0);      /* adx = 2*ady near-diag */
+    emit(128, 96, 255, 160, 0, 0);    /* qy = 129-ish */
 
     printf("};\n\n#define CORPUS_COUNT %uu\n", n_emitted);
     fprintf(stderr, "corpus_gen: %u records\n", n_emitted);
