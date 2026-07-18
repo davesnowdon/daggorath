@@ -64,19 +64,88 @@ static void ep_rebuild_row_addr(void)
  * deliberately do NOT use the library memset here: its fill uses an LDIR whose
  * source and destination are BOTH in Nick video RAM, and that read-video/
  * write-video block move derails on this platform (a plain discrete-store loop
- * is reliable). */
+ * is reliable).  The loop is unrolled 32-wide with page-local INC L (both
+ * framebuffers are 256-aligned and 0x1800 bytes): ~11 T/byte instead of the
+ * naive loop's ~39, i.e. ~61ms -> ~18ms of every frame at 4 MHz.  Discrete
+ * stores stay interrupt-transparent (no DI): the up-to-7353/s sound sample
+ * ISR keeps running mid-clear. */
 void plat_clear(void)
 {
     __asm
-        ld   hl, (_draw_base)       ; hidden buffer base
-        ld   de, #0x1800            ; FB_BYTES
-    pcclr$:
-        ld   (hl), #0x00
-        inc  hl
-        dec  de
-        ld   a, d
-        or   e
-        jr   nz, pcclr$
+        ld   hl, (_draw_base)       ; hidden buffer base (256-aligned)
+        xor  a
+        ld   d, #24                 ; 24 pages of 256 = 0x1800 bytes
+    pcpg$:
+        ld   b, #8                  ; 8 x 32 unrolled stores per page
+    pcblk$:
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l
+        ld   (hl), a
+        inc  l                      ; L wraps 0xFF -> 0x00 at page end
+        djnz pcblk$
+        inc  h                      ; next 256-byte page
+        dec  d
+        jr   nz, pcpg$
     __endasm;
 }
 
