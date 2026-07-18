@@ -136,6 +136,12 @@ void plat_sound_play(uint8_t sound_id, uint8_t volume)
     if (tier > 8u) {
         tier = 8u;
     }
+    /* Silence the sample interrupt BEFORE touching the LUT: a
+     * still-playing sample's ISR reads the table per tick, and a tier
+     * change rewrites all 256 bytes - preemption would otherwise play
+     * a brief burst through a half-rebuilt table.  (Play preempts
+     * anyway; this just makes the cutover silent instead of glitchy.) */
+    ep_snd_stop();
     build_lut(tier);                   /* no-op when the tier is unchanged */
     snd_seg = snd_dir[sound_id].seg;
     snd_waddr = snd_dir[sound_id].waddr;
