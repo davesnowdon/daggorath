@@ -92,9 +92,18 @@ void plat_clear(void)
     memset(fb, 0, sizeof fb);
 }
 
+/* DOD_DRAW_LOG=<file>: append every draw call as "x0 y0 x1 y1 vctfad
+ * flags" lines.  Bench tooling only (feeds the tests/z80draw* cycle
+ * harnesses a game-weighted corpus); inert when the env var is unset. */
+static FILE *draw_log;
+
 void plat_draw_line(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                     uint8_t vctfad, uint8_t flags)
 {
+    if (draw_log) {
+        fprintf(draw_log, "%d %d %d %d %u %u\n",
+                x0, y0, x1, y1, vctfad, flags & PLAT_LINE_INVERSE);
+    }
     draw_line_ref(fb, x0, y0, x1, y1, vctfad,
                   (uint8_t)(flags & PLAT_LINE_INVERSE), 0, FB_HEIGHT);
 }
@@ -591,6 +600,15 @@ void plat_init(void)
     }
     start_ms = opt.headless ? 0 : SDL_GetTicks64();
     load_sfx("../assets/raw-22050");
+    {
+        const char *p = getenv("DOD_DRAW_LOG");
+        if (p != NULL) {
+            draw_log = fopen(p, "w");
+            if (draw_log == NULL) {
+                fprintf(stderr, "DOD_DRAW_LOG: cannot open %s\n", p);
+            }
+        }
+    }
 }
 
 void plat_shutdown(void)
@@ -604,6 +622,10 @@ void plat_shutdown(void)
     }
     if (rep_file) {
         fclose(rep_file);
+    }
+    if (draw_log) {
+        fclose(draw_log);
+        draw_log = NULL;
     }
     if (!opt.headless) {
         SDL_Quit();
