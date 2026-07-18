@@ -10,10 +10,10 @@ CORE    := ../core
 
 TESTS   := test_rng test_draw test_scale
 
-.PHONY: all clean coverage golden scenarios check ab-modules
+.PHONY: all clean coverage golden scenarios sanitize check ab-modules
 all: $(TESTS:%=run-%)
 
-check: all ab-modules scenarios
+check: all ab-modules scenarios sanitize
 
 golden:
 	../tools/make-goldens.sh
@@ -37,6 +37,11 @@ run-%: %
 #   ./run-scenarios.sh --regen
 scenarios:
 	./run-scenarios.sh
+
+# The same replays under ASan+UBSan (no recover): catches UB-class
+# defects the golden diffs cannot (e.g. the negative-shift fix).
+sanitize:
+	./run-sanitize.sh
 
 # Line coverage of core/ from the scenario replays (gcovr is not
 # installable on this host; plain gcov + awk).  Phase-1 target: >= 80%.
@@ -71,9 +76,8 @@ ab-modules: ab_modules_c.c ab_stubs.c $(CORE)/dungeon.c $(CORE)/parser.c \
 	$(CC) $(CFLAGS) -Wno-unused-parameter -I$(CORE) -o ab_c $^; \
 	./ab_c > ab_c.out; \
 	if [ ! -d $(PORT_SRC) ]; then \
-	    echo "ab-modules: C++ port not found at $(PORT_SRC)"; \
-	    echo "            reference diff SKIPPED (clone the Daggorath" \
-	         "PC-Port there to enable it)"; \
+	    echo "== SKIP ab-modules reference diff (C++ port not at" \
+	         "$(PORT_SRC) - clone the Daggorath PC-Port there)"; \
 	else \
 	    g++ -O1 -w -o ab_ref ../tools/ab_modules_ref.cpp \
 	        -I$(PORT_SRC) $$(sdl2-config --cflags) -I$$HOME/.local/include; \

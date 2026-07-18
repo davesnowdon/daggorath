@@ -30,5 +30,13 @@ for g in *.gcda; do gcov -o . "$g" 2>/dev/null; done | awk '
     tot+=p[5]; cov+=p[3]/100*p[5]; want=0
 }
 END { printf "%-18s %7.2f%%  %5d lines\n", "TOTAL core/", 100*cov/tot, tot }' \
-    | sort -k2 -n
+    | sort -k2 -n | tee "$OUT/report.txt"
+
+# the ">= 80%" target used to be a comment only - now it gates
+total=$(awk '/^TOTAL/ { gsub(/%/,"",$3); print $3 }' "$OUT/report.txt")
 cd / && rm -rf "$OUT"
+if ! awk -v t="$total" 'BEGIN { exit (t+0 >= 80.0) ? 0 : 1 }'; then
+    echo "COVERAGE FAIL: TOTAL $total% < 80%"
+    exit 1
+fi
+echo "COVERAGE OK: TOTAL $total% >= 80%"

@@ -49,16 +49,22 @@ expect_error_border() {   # $@ = files for the disk (loader.com first)
     echo "$border"
 }
 
+# exact expected borders (= raw EXOS status codes; measured + stable in
+# the emulator): distinct codes prove the two DIFFERENT error paths
+# fired, not merely "some failure happened"
+EXPECT_MISSING=207     # 0xCF: EXDOS file-not-found on the open
+EXPECT_TRUNC=228       # 0xE4: .EOF from the second read-block
+
 echo "== 2. case 1: GAME.BIN missing"
 B1=$(expect_error_border "$PORT/enterprise/loader.com")
-[ "$B1" != "0" ] || { echo "EP-LOADFAIL FAILED (missing GAME.BIN: border stayed 0)" >&2; exit 1; }
-echo "   halted with border colour $B1 (EXOS open status)"
+[ "$B1" = "$EXPECT_MISSING" ] || { echo "EP-LOADFAIL FAILED (missing GAME.BIN: border $B1, expected $EXPECT_MISSING)" >&2; exit 1; }
+echo "   halted with border colour $B1 (EXOS open status, as expected)"
 
 echo "== 3. case 2: GAME.BIN truncated"
 head -c 20000 "$PORT/enterprise/game.bin" > GAME.BIN
 B2=$(expect_error_border "$PORT/enterprise/loader.com" "$(pwd)/GAME.BIN")
 rm -f GAME.BIN
-[ "$B2" != "0" ] || { echo "EP-LOADFAIL FAILED (truncated GAME.BIN: border stayed 0 - partial image was booted?)" >&2; exit 1; }
-echo "   halted with border colour $B2 (EXOS read status)"
+[ "$B2" = "$EXPECT_TRUNC" ] || { echo "EP-LOADFAIL FAILED (truncated GAME.BIN: border $B2, expected $EXPECT_TRUNC)" >&2; exit 1; }
+echo "   halted with border colour $B2 (.EOF read status, as expected)"
 
 echo "EP-LOADFAIL PASS (missing => border $B1, truncated => border $B2)"

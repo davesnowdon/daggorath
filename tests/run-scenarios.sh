@@ -18,7 +18,11 @@ run() {
     set -- --headless --exit-after "$exit_after" \
         --dump-state "$OUT/$name.dump" --save-file "$OUT/$name.sav"
     [ -n "$keys" ] && set -- "$@" --replay "scenarios/$keys"
-    "$BIN" "$@" >/dev/null 2>&1 || true
+    # the game's own exit status GATES: a crash after the final dump
+    # would otherwise pass on the golden diff alone
+    if ! timeout 120 "$BIN" "$@" >/dev/null 2>&1; then
+        echo "FAIL   $name (nonzero exit or timeout)"; FAILED=1; return 0
+    fi
     if [ "$REGEN" = 1 ]; then
         cp "$OUT/$name.dump" "$GOLD/$name.golden"
         echo "regen  $name ($(grep -c '^===' "$GOLD/$name.golden") dumps)"
