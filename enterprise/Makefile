@@ -46,7 +46,8 @@ daggorat.com: $(SRC) zpragma_ep.inc bare_crt0.asm sfx_index_ep.h
 
 # SFX blobs + generated index/bin tables (bin-packed, 128-aligned; see
 # tools/gen_sfxep.py).  DAGGOR1.SFX = stock EP128, DAGGOR2.SFX = expanded.
-DAGGOR1.SFX DAGGOR2.SFX sfx_index_ep.h sfx_bins.inc: ../tools/gen_sfxep.py \
+# grouped target (&:): one generator run for all four outputs - no -j race
+DAGGOR1.SFX DAGGOR2.SFX sfx_index_ep.h sfx_bins.inc &: ../tools/gen_sfxep.py \
 		$(wildcard ../assets/raw-7350/*.raw)
 	python3 ../tools/gen_sfxep.py ../assets/raw-7350 .
 
@@ -54,7 +55,7 @@ DAGGOR1.SFX DAGGOR2.SFX sfx_index_ep.h sfx_bins.inc: ../tools/gen_sfxep.py \
 # shipped as a raw image (game.bin) plus a small loader.com that allocates the
 # machine's segments, reads the image across FC/FD/FE, loads the SFX blob,
 # and enters the game.
-loader.com game.bin: daggorat.com loader.s build-loader.sh sfx_bins.inc
+loader.com game.bin &: daggorat.com loader.s build-loader.sh sfx_bins.inc
 	./build-loader.sh
 
 .PHONY: clean run loader disk

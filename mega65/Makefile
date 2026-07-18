@@ -21,7 +21,8 @@ daggorath.prg: $(SRC) sfx_index65.h
 # assets/sfx-src with tools/wav2raw.c, factor 3).  DAGGOR65.SFX must
 # sit in the SD root (xemu: the -virtsd directory) beside the .prg.
 SFXDIR := ../assets/raw-7350
-DAGGOR65.SFX sfx_index65.h: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
+# grouped target (&:): one generator run for both outputs - no -j race
+DAGGOR65.SFX sfx_index65.h &: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
 	python3 ../tools/gen_sfxbin.py $(SFXDIR) DAGGOR65.SFX sfx_index65.h 7350
 
 # distributable disk image (PRG inside; DAGGOR65.SFX still goes in the

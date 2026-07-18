@@ -26,9 +26,10 @@ EP_EMU_BIN  ?= $(HOME)/retro-computing/elan-enterprise/emulators/ep128emu/ep128e
 ZESARUX_BIN ?= $(HOME)/retro-computing/spectrum-next/emulators/ZEsarUX/zesarux/src/zesarux
 XEMU_BIN    ?= $(HOME)/retro-computing/mega65/emulators/xemu/build/bin/xmega65.native
 Z88DK_BIN   ?= $(HOME)/retro-computing/spectrum-next/dev/toolchains/z88dk/bin/zcc
-export EP_EMU_BIN ZESARUX_BIN XEMU_BIN Z88DK_BIN
+MOS_CC_BIN  ?= $(HOME)/retro-computing/mega65/dev/llvm-mos/bin/mos-mega65-clang
+export EP_EMU_BIN ZESARUX_BIN XEMU_BIN Z88DK_BIN MOS_CC_BIN
 
-.PHONY: all desktop next mega65 enterprise check check-all release clean
+.PHONY: all desktop next mega65 enterprise check check-parallel-build check-all release clean
 all: desktop next mega65 enterprise
 
 desktop:
@@ -46,7 +47,25 @@ enterprise:
 check:
 	$(MAKE) -C tests check
 
-check-all: check
+# Forced PARALLEL rebuild of every backend: the multi-output generator
+# rules raced under -j until they became grouped targets (&:) - a
+# serial build can never regress-test that class of defect.
+check-parallel-build:
+	@if [ -x "$$Z88DK_BIN" ]; then \
+	    $(MAKE) -C spectrum-next -j3 -B daggorath.nex >/dev/null; \
+	    $(MAKE) -C enterprise -j3 -B loader.com game.bin \
+	        DAGGOR1.SFX DAGGOR2.SFX >/dev/null; \
+	    echo "== parallel next+enterprise rebuild OK"; \
+	else echo "== SKIP parallel next/enterprise build (no z88dk)"; fi
+	@if [ -x "$$MOS_CC_BIN" ]; then \
+	    $(MAKE) -C mega65 -j3 -B daggorath.prg DAGGOR65.SFX >/dev/null; \
+	    echo "== parallel mega65 rebuild OK"; \
+	else echo "== SKIP parallel mega65 build (no llvm-mos)"; fi
+
+check-all: check check-parallel-build
+	@if [ -x "$$MOS_CC_BIN" ]; then \
+	    $(MAKE) -C tests ab-mos | tail -1; \
+	else echo "== SKIP ab-mos (no llvm-mos)"; fi
 	@mkdir -p tests/check-logs; fail=0; \
 	for entry in $(HARNESSES); do \
 	    dir=$${entry%%:*}; kind=$${entry##*:}; \

@@ -26,7 +26,10 @@ daggorath.nex: $(SRC) zpragma.inc sfx_index.h daggorath.sfx
 # SFX blob + index from the 11025 Hz raws (regenerate the raws from
 # assets/sfx-src with tools/wav2raw.c, factor 2)
 SFXDIR := ../assets/raw-11025
-daggorath.sfx sfx_index.h: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
+# grouped target (&:, GNU make 4.3+): ONE generator run produces both
+# files; the plain 'a b:' form runs the recipe once per target under
+# -j and the concurrent writers race
+daggorath.sfx sfx_index.h &: ../tools/gen_sfxbin.py $(wildcard $(SFXDIR)/*.raw)
 	python3 ../tools/gen_sfxbin.py $(SFXDIR) daggorath.sfx sfx_index.h
 
 .PHONY: clean run
